@@ -1,0 +1,665 @@
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = 400;
+canvas.height = 600;
+
+// 画像のスムージングを有効化（アンチエイリアシング）
+ctx.imageSmoothingEnabled = true;
+ctx.imageSmoothingQuality = 'high';
+
+const game = {
+    score: 0,
+    lives: 3,
+    bombs: 3,
+    gameOver: false,
+    paused: false,
+    frameCount: 0,
+    started: false  // ゲーム開始フラグを追加
+};
+
+const playerImage = new Image();
+playerImage.src = 'player.png';
+let imageLoaded = false;
+
+playerImage.onload = function() {
+    imageLoaded = true;
+};
+
+playerImage.onerror = function() {
+    console.log('プレイヤー画像が読み込めませんでした。デフォルトの図形で表示します。');
+    imageLoaded = false;
+};
+
+const backgroundImage = new Image();
+backgroundImage.src = 'background.png';
+let bgImageLoaded = false;
+let bgScrollY = 0;
+
+backgroundImage.onload = function() {
+    bgImageLoaded = true;
+};
+
+backgroundImage.onerror = function() {
+    console.log('背景画像が読み込めませんでした。デフォルトの背景で表示します。');
+    bgImageLoaded = false;
+};
+
+// 敵キャラ画像の読み込み
+const enemyImage = new Image();
+enemyImage.src = 'enemy.png';
+let enemyImageLoaded = false;
+
+enemyImage.onload = function() {
+    enemyImageLoaded = true;
+    console.log('敵画像が読み込まれました');
+};
+
+enemyImage.onerror = function() {
+    console.log('敵画像が読み込めませんでした。デフォルトの図形で表示します。');
+    enemyImageLoaded = false;
+};
+
+// ボス画像の読み込み
+const bossImage = new Image();
+bossImage.src = 'boss.png';
+let bossImageLoaded = false;
+
+bossImage.onload = function() {
+    bossImageLoaded = true;
+    console.log('ボス画像が読み込まれました');
+};
+
+bossImage.onerror = function() {
+    console.log('ボス画像が読み込めませんでした。デフォルトの図形で表示します。');
+    bossImageLoaded = false;
+};
+
+const bgm = new Audio('bgm.mp3');
+bgm.loop = true;
+bgm.volume = 0.1;
+
+bgm.addEventListener('canplaythrough', function() {
+    console.log('BGMが読み込まれました');
+});
+
+bgm.addEventListener('error', function() {
+    console.log('BGMが読み込めませんでした');
+});
+
+function playBGM() {
+    bgm.play().catch(function(error) {
+        console.log('BGM再生エラー:', error);
+    });
+}
+
+function stopBGM() {
+    bgm.pause();
+    bgm.currentTime = 0;
+}
+
+class Player {
+    constructor() {
+        this.x = canvas.width / 2;
+        this.y = canvas.height - 100;
+        this.width = 60;  // より適切なサイズに調整
+        this.height = 60;  // より適切なサイズに調整
+        this.speed = 5;
+        this.slowSpeed = 2;
+        this.isSlow = false;
+        this.bullets = [];
+        this.shootCooldown = 0;
+        this.invulnerable = 0;
+        this.hitboxRadius = 3;
+    }
+
+    update() {
+        const speed = this.isSlow ? this.slowSpeed : this.speed;
+
+        if (keys.ArrowLeft && this.x > this.width/2) {
+            this.x -= speed;
+        }
+        if (keys.ArrowRight && this.x < canvas.width - this.width/2) {
+            this.x += speed;
+        }
+        if (keys.ArrowUp && this.y > this.height/2) {
+            this.y -= speed;
+        }
+        if (keys.ArrowDown && this.y < canvas.height - this.height/2) {
+            this.y += speed;
+        }
+
+        if (this.shootCooldown > 0) {
+            this.shootCooldown--;
+        }
+
+        if (keys.z && this.shootCooldown === 0) {
+            this.shoot();
+            this.shootCooldown = 4;
+        }
+
+        if (keys.x && game.bombs > 0 && !keys.xPressed) {
+            this.useBomb();
+            keys.xPressed = true;
+        }
+
+        if (this.invulnerable > 0) {
+            this.invulnerable--;
+        }
+
+        this.bullets = this.bullets.filter(bullet => {
+            bullet.y -= 15;
+            return bullet.y > -10;
+        });
+    }
+
+    shoot() {
+        this.bullets.push({
+            x: this.x,
+            y: this.y - 10,
+            width: 4,
+            height: 12
+        });
+    }
+
+    useBomb() {
+        game.bombs--;
+        enemies.length = 0;
+        enemyBullets.length = 0;
+        this.invulnerable = 180;
+
+        for (let i = 0; i < 30; i++) {
+            particles.push(new Particle(
+                this.x + Math.random() * 20 - 10,
+                this.y + Math.random() * 20 - 10,
+                Math.random() * Math.PI * 2,
+                Math.random() * 5 + 2,
+                '#ffffff',
+                60
+            ));
+        }
+    }
+
+    draw() {
+        ctx.save();
+
+        if (this.invulnerable > 0 && this.invulnerable % 6 < 3) {
+            ctx.globalAlpha = 0.5;
+        }
+
+        if (imageLoaded && playerImage.complete) {
+            ctx.drawImage(
+                playerImage,
+                this.x - this.width / 2,
+                this.y - this.height / 2,
+                this.width,
+                this.height
+            );
+        } else {
+            ctx.fillStyle = '#ff3333';
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y - this.height/2);
+            ctx.lineTo(this.x - this.width/2, this.y + this.height/2);
+            ctx.lineTo(this.x, this.y + this.height/3);
+            ctx.lineTo(this.x + this.width/2, this.y + this.height/2);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        if (this.isSlow) {
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.hitboxRadius, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        ctx.restore();
+
+        ctx.fillStyle = '#ffff00';
+        this.bullets.forEach(bullet => {
+            ctx.fillRect(bullet.x - bullet.width/2, bullet.y, bullet.width, bullet.height);
+        });
+    }
+
+    hit() {
+        if (this.invulnerable === 0) {
+            game.lives--;
+            this.invulnerable = 180;
+            this.x = canvas.width / 2;
+            this.y = canvas.height - 100;
+
+            if (game.lives <= 0) {
+                game.gameOver = true;
+            }
+        }
+    }
+}
+
+class Enemy {
+    constructor(x, y, type = 'basic') {
+        this.x = x;
+        this.y = y;
+        this.type = type;
+        this.width = type === 'boss' ? 80 : 32;  // ボスは大きく、通常敵は適度なサイズ
+        this.height = type === 'boss' ? 80 : 32;
+        this.hp = type === 'boss' ? 100 : 3;
+        this.shootCooldown = 0;
+        this.movePattern = Math.random() * Math.PI * 2;
+        this.speed = type === 'boss' ? 1 : 2;
+    }
+
+    update() {
+        if (this.type === 'basic') {
+            this.movePattern += 0.05;
+            this.x += Math.sin(this.movePattern) * 2;
+            this.y += this.speed;
+        } else if (this.type === 'boss') {
+            this.movePattern += 0.02;
+            this.x = canvas.width/2 + Math.sin(this.movePattern) * 100;
+            if (this.y < 100) {
+                this.y += this.speed;
+            }
+        }
+
+        if (this.shootCooldown > 0) {
+            this.shootCooldown--;
+        }
+
+        if (this.shootCooldown === 0) {
+            this.shoot();
+            this.shootCooldown = this.type === 'boss' ? 10 : 60;
+        }
+    }
+
+    shoot() {
+        if (this.type === 'basic') {
+            enemyBullets.push(new EnemyBullet(this.x, this.y + 10, 0, 3));
+        } else if (this.type === 'boss') {
+            for (let i = 0; i < 8; i++) {
+                const angle = (Math.PI * 2 / 8) * i + game.frameCount * 0.02;
+                enemyBullets.push(new EnemyBullet(
+                    this.x,
+                    this.y,
+                    Math.cos(angle) * 2,
+                    Math.sin(angle) * 2,
+                    'spiral'
+                ));
+            }
+        }
+    }
+
+    draw() {
+        ctx.save();
+        
+        if (this.type === 'boss') {
+            // ボス画像の描画
+            if (bossImageLoaded && bossImage.complete) {
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(
+                    bossImage,
+                    Math.floor(this.x - this.width / 2),
+                    Math.floor(this.y - this.height / 2),
+                    this.width,
+                    this.height
+                );
+            } else {
+                // デフォルトのボス表示
+                ctx.fillStyle = '#ff00ff';
+                ctx.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
+            }
+            
+            // ボスのHPバー
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(50, 10, canvas.width - 100, 8);
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(50, 10, (canvas.width - 100) * (this.hp / 100), 8);
+            ctx.strokeStyle = '#ffffff';
+            ctx.strokeRect(50, 10, canvas.width - 100, 8);
+        } else {
+            // 通常敵の画像描画
+            if (enemyImageLoaded && enemyImage.complete) {
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(
+                    enemyImage,
+                    Math.floor(this.x - this.width / 2),
+                    Math.floor(this.y - this.height / 2),
+                    this.width,
+                    this.height
+                );
+            } else {
+                // デフォルトの敵表示
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
+            }
+        }
+        
+        ctx.restore();
+    }
+
+    takeDamage(damage = 1) {
+        this.hp -= damage;
+        particles.push(new Particle(this.x, this.y, Math.random() * Math.PI * 2, 3, '#ffff00', 20));
+
+        if (this.hp <= 0) {
+            game.score += this.type === 'boss' ? 1000 : 100;
+
+            for (let i = 0; i < 10; i++) {
+                particles.push(new Particle(
+                    this.x + Math.random() * 20 - 10,
+                    this.y + Math.random() * 20 - 10,
+                    Math.random() * Math.PI * 2,
+                    Math.random() * 3 + 1,
+                    this.type === 'boss' ? '#ff00ff' : '#00ff00',
+                    30
+                ));
+            }
+            return true;
+        }
+        return false;
+    }
+}
+
+class EnemyBullet {
+    constructor(x, y, vx, vy, type = 'normal') {
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.type = type;
+        this.radius = type === 'spiral' ? 6 : 4;
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.type === 'spiral') {
+            this.vx *= 1.01;
+            this.vy *= 1.01;
+        }
+    }
+
+    draw() {
+        ctx.fillStyle = this.type === 'spiral' ? '#ff00ff' : '#ff8800';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+class Particle {
+    constructor(x, y, angle, speed, color, life) {
+        this.x = x;
+        this.y = y;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.color = color;
+        this.life = life;
+        this.maxLife = life;
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vx *= 0.98;
+        this.vy *= 0.98;
+        this.life--;
+    }
+
+    draw() {
+        ctx.globalAlpha = this.life / this.maxLife;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x - 2, this.y - 2, 4, 4);
+        ctx.globalAlpha = 1;
+    }
+}
+
+const player = new Player();
+let enemies = [];
+let enemyBullets = [];
+let particles = [];
+let stars = [];
+
+for (let i = 0; i < 50; i++) {
+    stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        speed: Math.random() * 2 + 0.5,
+        size: Math.random() * 2
+    });
+}
+
+const keys = {
+    ArrowLeft: false,
+    ArrowRight: false,
+    ArrowUp: false,
+    ArrowDown: false,
+    z: false,
+    x: false,
+    xPressed: false,
+    Shift: false
+};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key in keys) {
+        keys[e.key] = true;
+        e.preventDefault();
+    }
+
+    if (e.key === 'Shift') {
+        player.isSlow = true;
+    }
+
+    if (e.key === 'Enter' && game.gameOver) {
+        resetGame();
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    if (e.key in keys) {
+        keys[e.key] = false;
+        e.preventDefault();
+    }
+
+    if (e.key === 'Shift') {
+        player.isSlow = false;
+    }
+
+    if (e.key === 'x') {
+        keys.xPressed = false;
+    }
+});
+
+function resetGame() {
+    game.score = 0;
+    game.lives = 3;
+    game.bombs = 3;
+    game.gameOver = false;
+    game.frameCount = 0;
+    game.started = true;  // ゲーム再開
+
+    player.x = canvas.width / 2;
+    player.y = canvas.height - 100;
+    player.bullets = [];
+    player.invulnerable = 0;
+
+    enemies = [];
+    enemyBullets = [];
+    particles = [];
+
+    playBGM();
+}
+
+function spawnEnemy() {
+    if (game.frameCount % 60 === 0) {
+        enemies.push(new Enemy(
+            Math.random() * (canvas.width - 40) + 20,
+            -20,
+            'basic'
+        ));
+    }
+
+    if (game.frameCount % 600 === 0 && enemies.filter(e => e.type === 'boss').length === 0) {
+        enemies.push(new Enemy(canvas.width / 2, -50, 'boss'));
+    }
+}
+
+function checkCollisions() {
+    player.bullets.forEach((bullet, bulletIndex) => {
+        enemies.forEach((enemy, enemyIndex) => {
+            if (Math.abs(bullet.x - enemy.x) < enemy.width/2 + bullet.width/2 &&
+                Math.abs(bullet.y - enemy.y) < enemy.height/2 + bullet.height/2) {
+
+                player.bullets.splice(bulletIndex, 1);
+
+                if (enemy.takeDamage()) {
+                    enemies.splice(enemyIndex, 1);
+                }
+            }
+        });
+    });
+
+    if (player.invulnerable === 0) {
+        enemyBullets.forEach((bullet) => {
+            const dx = bullet.x - player.x;
+            const dy = bullet.y - player.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < player.hitboxRadius + bullet.radius) {
+                player.hit();
+            }
+        });
+    }
+}
+
+function updateGame() {
+    // 背景のスクロールは常に実行（スタート画面でも動かす）
+    bgScrollY += 1;
+    if (bgScrollY > canvas.height) {
+        bgScrollY = 0;
+    }
+
+    stars.forEach(star => {
+        star.y += star.speed;
+        if (star.y > canvas.height) {
+            star.y = -10;
+            star.x = Math.random() * canvas.width;
+        }
+    });
+
+    if (!game.started) {
+        return;  // ゲームが開始されていない場合はここで終了
+    }
+
+    if (!game.gameOver) {
+        game.frameCount++;
+
+        player.update();
+
+        enemies = enemies.filter(enemy => {
+            enemy.update();
+            return enemy.y < canvas.height + 50;
+        });
+
+        enemyBullets = enemyBullets.filter(bullet => {
+            bullet.update();
+            return bullet.x > -20 && bullet.x < canvas.width + 20 &&
+                   bullet.y > -20 && bullet.y < canvas.height + 20;
+        });
+
+        particles = particles.filter(particle => {
+            particle.update();
+            return particle.life > 0;
+        });
+
+        spawnEnemy();
+        checkCollisions();
+
+        document.getElementById('score').textContent = game.score;
+        document.getElementById('lives').textContent = game.lives;
+        document.getElementById('bombs').textContent = game.bombs;
+    }
+}
+
+function drawGame() {
+    // 常に背景を描画（スタート画面でも表示）
+    if (bgImageLoaded && backgroundImage.complete) {
+        const imgHeight = backgroundImage.height;
+        const imgWidth = backgroundImage.width;
+        const scale = canvas.width / imgWidth;
+        const scaledHeight = imgHeight * scale;
+
+        ctx.drawImage(
+            backgroundImage,
+            0,
+            bgScrollY - scaledHeight,
+            canvas.width,
+            scaledHeight
+        );
+
+        ctx.drawImage(
+            backgroundImage,
+            0,
+            bgScrollY,
+            canvas.width,
+            scaledHeight
+        );
+    } else {
+        ctx.fillStyle = '#000033';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#ffffff';
+        stars.forEach(star => {
+            ctx.globalAlpha = star.size / 2;
+            ctx.fillRect(star.x, star.y, star.size, star.size);
+        });
+        ctx.globalAlpha = 1;
+    }
+
+    // ゲーム開始後のみゲームオブジェクトを描画
+    if (game.started) {
+        particles.forEach(particle => particle.draw());
+        enemies.forEach(enemy => enemy.draw());
+        enemyBullets.forEach(bullet => bullet.draw());
+        player.draw();
+    }
+
+    if (game.gameOver) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '36px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 30);
+
+        ctx.font = '24px Arial';
+        ctx.fillText(`スコア: ${game.score}`, canvas.width/2, canvas.height/2 + 10);
+
+        ctx.font = '18px Arial';
+        ctx.fillText('Enterキーでリスタート', canvas.width/2, canvas.height/2 + 50);
+    }
+}
+
+function gameLoop() {
+    updateGame();
+    drawGame();
+    requestAnimationFrame(gameLoop);
+}
+
+// スタートボタンのイベントリスナー
+document.getElementById('startButton').addEventListener('click', function() {
+    // スタート画面を非表示
+    document.getElementById('startScreen').classList.add('hidden');
+    // ゲーム情報を表示
+    document.getElementById('info').style.display = 'block';
+
+    // ゲーム開始
+    game.started = true;
+    playBGM();
+});
+
+gameLoop();
