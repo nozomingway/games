@@ -17,19 +17,23 @@
         }
         #gameContainer {
             position: relative;
-        }
-        canvas {
+            display: flex;
+            background: #111;
             border: 2px solid #444;
             box-shadow: 0 0 20px rgba(100, 100, 255, 0.5);
         }
+        canvas {
+            border-right: 2px solid #444;
+        }
         #info {
-            position: absolute;
-            top: 10px;
-            left: 10px;
+            width: 200px;
+            padding: 20px;
             color: white;
-            font-size: 18px;
+            font-size: 16px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             display: none;
+            background: linear-gradient(to bottom, #1a1a2e, #0f0f1e);
+            position: relative;
         }
         #controls {
             position: absolute;
@@ -59,27 +63,39 @@
             text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
             animation: glow 2s ease-in-out infinite alternate;
         }
+        #gameLogo {
+            animation: glow 2s ease-in-out infinite alternate;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+        }
         @keyframes glow {
             from { text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 10px rgba(255,255,255,0.3); }
             to { text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.6); }
         }
         #startButton {
-            padding: 15px 40px;
-            font-size: 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 50px;
+            padding: 18px 50px;
+            font-size: 20px;
+            font-family: 'Arial Black', 'Arial', sans-serif;
+            font-weight: bold;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 50%, #1a202c 100%);
+            color: #ffd700;
+            border: 2px solid #ffd700;
+            border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
         }
         #startButton:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+            transform: translateY(-3px);
+            background: linear-gradient(135deg, #5a6578 0%, #3d4758 50%, #2a303c 100%);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+            border-color: #ffed4e;
         }
         #startButton:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
         }
         .controls-info {
             margin-top: 30px;
@@ -91,14 +107,118 @@
         .hidden {
             display: none !important;
         }
+
+        /* 会話シーンのスタイル */
+        #dialogueScene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 20;
+        }
+
+        #dialogueOverlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .character-portrait {
+            position: absolute;
+            width: 220px;
+            height: 300px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: opacity 0.3s;
+        }
+
+        #leftCharacter {
+            left: -10px;
+        }
+
+        #rightCharacter {
+            right: 10px;
+            left: 300px;
+        }
+
+        .character-portrait.inactive {
+            opacity: 0.5;
+        }
+
+        .character-image {
+            width: 110%;
+            height: 110%;
+            object-fit: contain;
+        }
+
+        .character-default {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        #dialogueBox {
+            position: absolute;
+            bottom: 100px;
+            left: 250px;
+            transform: translateX(-50%);
+            width: 450px;
+            max-width: 450px;
+            background: linear-gradient(to bottom, rgba(0,0,40,0.95), rgba(0,0,60,0.95));
+            border: 2px solid #4a5568;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+
+        #speakerName {
+            color: #ffd700;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        #dialogueText {
+            color: white;
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 60px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        #dialoguePrompt {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            color: #ffd700;
+            font-size: 12px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="startScreen">
-            <h1>ここにタイトルが入る</h1>
-            <button id="startButton">ゲームスタート</button>
+            <img src="logo.png" id="gameLogo" style="max-width: 400px; margin-bottom: 20px; display: none;" onload="this.style.display='block'; document.getElementById('gameTitle').style.display='none';" onerror="this.style.display='none'; document.getElementById('gameTitle').style.display='block';">
+            <h1 id="gameTitle">ここにタイトルが入る</h1>
+            <button id="startButton">START GAME</button>
             <div class="controls-info">
                 <p>操作方法</p>
                 矢印キー: 移動<br>
@@ -107,10 +227,54 @@
                 Shift: 低速移動
             </div>
         </div>
+
+        <!-- 会話シーン -->
+        <div id="dialogueScene">
+            <div id="dialogueOverlay"></div>
+
+            <!-- 左側キャラクター -->
+            <div id="leftCharacter" class="character-portrait">
+                <img src="player_portrait.png" class="character-image" style="display: none;" onload="this.style.display='block'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="character-default">ゆえ</div>
+            </div>
+
+            <!-- 右側キャラクター -->
+            <div id="rightCharacter" class="character-portrait">
+                <img src="boss_portrait.png" class="character-image" style="display: none;" onload="this.style.display='block'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="character-default">ゆえうさぎ</div>
+            </div>
+
+            <!-- 会話ボックス -->
+            <div id="dialogueBox">
+                <div id="speakerName">???</div>
+                <div id="dialogueText"></div>
+                <div id="dialoguePrompt">▼ Zキーで進む</div>
+            </div>
+        </div>
+
         <div id="info">
-            <div>スコア: <span id="score">0</span></div>
-            <div>残り人数: <span id="lives">3</span></div>
-            <div>スペルカード: <span id="bombs">3</span></div>
+            <div style="margin-bottom: 30px;">
+                <div style="color: #ffd700; font-size: 14px; margin-bottom: 5px;">SCORE</div>
+                <div style="font-size: 24px; font-weight: bold;"><span id="score">0</span></div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <div style="color: #ffd700; font-size: 14px; margin-bottom: 5px;">PLAYER</div>
+                <div style="display: flex; gap: 5px;">
+                    <span id="livesDisplay"></span>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <div style="color: #ffd700; font-size: 14px; margin-bottom: 5px;">SPELL CARD</div>
+                <div style="display: flex; gap: 5px;">
+                    <span id="bombsDisplay"></span>
+                </div>
+            </div>
+
+            <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); text-align: center;">
+                <img src="logo2.png" id="sidebarLogo" style="max-width: 160px; opacity: 0.8;" onerror="this.style.display='none';">
+            </div>
         </div>
         <div id="controls">
             矢印キー: 移動 | Z: ショット | X: スペルカード | Shift: 低速移動
