@@ -407,10 +407,35 @@ class EnemyBullet {
     }
 
     draw() {
-        ctx.fillStyle = this.type === 'spiral' ? '#ff00ff' : '#ff8800';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
+        if (this.type === 'spiral') {
+            // ボスの弾はそのまま
+            ctx.fillStyle = '#ff00ff';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // 雑魚敵の弾を人参に
+            ctx.save();
+            
+            // 人参の本体（オレンジ色の三角形）
+            ctx.fillStyle = '#ff6600';
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y + 8);  // 先端（下向き）
+            ctx.lineTo(this.x - 4, this.y - 4);  // 左上
+            ctx.lineTo(this.x + 4, this.y - 4);  // 右上
+            ctx.closePath();
+            ctx.fill();
+            
+            // 人参の葉っぱ（緑色）
+            ctx.fillStyle = '#00cc00';
+            ctx.fillRect(this.x - 3, this.y - 6, 6, 3);
+            
+            // 葉っぱのディテール
+            ctx.fillStyle = '#009900';
+            ctx.fillRect(this.x - 1, this.y - 7, 2, 2);
+            
+            ctx.restore();
+        }
     }
 }
 
