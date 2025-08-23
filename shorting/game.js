@@ -726,7 +726,7 @@ class DialogueSystem {
     getBossDialogue() {
         return [
             { speaker: 'ゆえうさぎ', position: 'right', text: 'お姉さま！48時間耐久配信なんて無謀です！全力で止めますわよ！' },
-            { speaker: 'ゆえ', position: 'left', text: 'やだやだやだもん！48時間やりきって、カッコいい大人のお姉さんになるんだから！！！' },
+            { speaker: '月見里瑜依', position: 'left', text: 'やだやだやだもん！48時間やりきって、カッコいい大人のお姉さんになるんだから！！！' },
             { speaker: 'ゆえうさぎ', position: 'right', text: '（だめだこいつはやくなんとかしないと...）' }
         ];
     }
@@ -772,7 +772,7 @@ class DialogueSystem {
 
     typeText(text) {
         const textElement = document.getElementById('dialogueText');
-        
+
         // 心の声（括弧で囲まれたテキスト）は即座に表示
         if (text.startsWith('（') && text.endsWith('）')) {
             textElement.textContent = text;
@@ -780,7 +780,7 @@ class DialogueSystem {
             this.targetText = text;
             return;
         }
-        
+
         // 通常のタイプライター効果
         this.isTyping = true;
         this.targetText = text;
