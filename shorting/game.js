@@ -408,11 +408,43 @@ class EnemyBullet {
 
     draw() {
         if (this.type === 'spiral') {
-            // ボスの弾はそのまま
-            ctx.fillStyle = '#ff00ff';
+            // ボスの弾を桜の花びらに
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            
+            // 回転アニメーション
+            ctx.rotate(Date.now() * 0.002 + this.x);
+            
+            // 桜の花びらを描画（5枚）
+            for (let i = 0; i < 5; i++) {
+                ctx.rotate(Math.PI * 2 / 5);
+                ctx.beginPath();
+                
+                // 花びらの形状
+                ctx.moveTo(0, 0);
+                ctx.quadraticCurveTo(-3, -8, 0, -10);
+                ctx.quadraticCurveTo(3, -8, 0, 0);
+                
+                // ピンクのグラデーション
+                const gradient = ctx.createRadialGradient(0, -5, 0, 0, -5, 8);
+                gradient.addColorStop(0, '#ffb3d9');
+                gradient.addColorStop(1, '#ff66b3');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // 花びらの輪郭
+                ctx.strokeStyle = '#ff99cc';
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+            }
+            
+            // 中心の花芯
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.arc(0, 0, 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffff99';
             ctx.fill();
+            
+            ctx.restore();
         } else {
             // 雑魚敵の弾を人参に
             ctx.save();
