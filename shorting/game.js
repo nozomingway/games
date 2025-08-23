@@ -1,8 +1,9 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-canvas.width = 400;
-canvas.height = 600;
+// 画面サイズを1.25倍に拡大
+canvas.width = 500;
+canvas.height = 750;
 
 // 画像のスムージングを有効化（アンチエイリアシング）
 ctx.imageSmoothingEnabled = true;
