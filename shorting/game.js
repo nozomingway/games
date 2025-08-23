@@ -367,12 +367,34 @@ class Enemy {
             if (bossImageLoaded && bossImage.complete) {
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
+                
+                // 画像の元のサイズを取得
+                const imgWidth = bossImage.naturalWidth;
+                const imgHeight = bossImage.naturalHeight;
+                
+                // アスペクト比を保持してスケール計算
+                let drawWidth = this.width;
+                let drawHeight = this.height;
+                
+                if (imgWidth > 0 && imgHeight > 0) {
+                    const imgAspect = imgWidth / imgHeight;
+                    const targetAspect = this.width / this.height;
+                    
+                    if (imgAspect > targetAspect) {
+                        // 画像が横長の場合、幅を基準にする
+                        drawHeight = this.width / imgAspect;
+                    } else {
+                        // 画像が縦長の場合、高さを基準にする
+                        drawWidth = this.height * imgAspect;
+                    }
+                }
+                
                 ctx.drawImage(
                     bossImage,
-                    Math.floor(this.x - this.width / 2),
-                    Math.floor(this.y - this.height / 2),
-                    this.width,
-                    this.height
+                    Math.floor(this.x - drawWidth / 2),
+                    Math.floor(this.y - drawHeight / 2),
+                    drawWidth,
+                    drawHeight
                 );
             } else {
                 // デフォルトのボス表示
@@ -679,7 +701,7 @@ function spawnEnemy() {
     }
 
     // ボス出現タイミング（約30秒後）
-    if (game.frameCount === 1800 && !game.bossDialogueShown) {
+    if (game.frameCount === 100 && !game.bossDialogueShown) {
         // 会話シーンを開始
         dialogueSystem.start(dialogueSystem.getBossDialogue());
     }
