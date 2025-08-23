@@ -236,20 +236,20 @@ class Player {
         this.bullets.forEach(bullet => {
             ctx.save();
             ctx.translate(bullet.x, bullet.y);
-            
+
             // 回転アニメーション
             ctx.rotate(Date.now() * 0.003 + bullet.x);
-            
+
             // 小さめの桜の花びらを描画（5枚）
             for (let i = 0; i < 5; i++) {
                 ctx.rotate(Math.PI * 2 / 5);
                 ctx.beginPath();
-                
+
                 // 花びらの形状（小さめ）
                 ctx.moveTo(0, 0);
                 ctx.quadraticCurveTo(-2, -5, 0, -6);
                 ctx.quadraticCurveTo(2, -5, 0, 0);
-                
+
                 // ピンクのグラデーション
                 const gradient = ctx.createRadialGradient(0, -3, 0, 0, -3, 5);
                 gradient.addColorStop(0, '#ffb3d9');
@@ -257,13 +257,13 @@ class Player {
                 ctx.fillStyle = gradient;
                 ctx.fill();
             }
-            
+
             // 中心の花芯
             ctx.beginPath();
             ctx.arc(0, 0, 1, 0, Math.PI * 2);
             ctx.fillStyle = '#ffff99';
             ctx.fill();
-            
+
             ctx.restore();
         });
     }
@@ -465,13 +465,13 @@ class EnemyBullet {
             ctx.beginPath();
             const outerRadius = 10;
             const innerRadius = 4;
-            
+
             for (let i = 0; i < 10; i++) {
                 const angle = (Math.PI * 2 / 10) * i - Math.PI / 2;
                 const radius = i % 2 === 0 ? outerRadius : innerRadius;
                 const x = Math.cos(angle) * radius;
                 const y = Math.sin(angle) * radius;
-                
+
                 if (i === 0) {
                     ctx.moveTo(x, y);
                 } else {
@@ -479,7 +479,7 @@ class EnemyBullet {
                 }
             }
             ctx.closePath();
-            
+
             // 黄色のグラデーション
             const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, outerRadius);
             gradient.addColorStop(0, '#ffff99');
@@ -487,7 +487,7 @@ class EnemyBullet {
             gradient.addColorStop(1, '#ff9900');
             ctx.fillStyle = gradient;
             ctx.fill();
-            
+
             // 星の輪郭
             ctx.strokeStyle = '#ffcc00';
             ctx.lineWidth = 1;
@@ -679,7 +679,7 @@ function spawnEnemy() {
     }
 
     // ボス出現タイミング（約30秒後）
-    if (game.frameCount === 600 && !game.bossDialogueShown) {
+    if (game.frameCount === 1800 && !game.bossDialogueShown) {
         // 会話シーンを開始
         dialogueSystem.start(dialogueSystem.getBossDialogue());
     }
@@ -763,14 +763,14 @@ function updateGame() {
 
         // スコアと残機、スペルカードの表示を更新
         document.getElementById('score').textContent = game.score;
-        
+
         // 残機を桜アイコンで表示
         const livesDisplay = document.getElementById('livesDisplay');
         livesDisplay.innerHTML = '';
         for (let i = 0; i < game.lives; i++) {
             livesDisplay.innerHTML += '<span style="color: #ff99cc; font-size: 20px;">🌸</span>';
         }
-        
+
         // スペルカードを星アイコンで表示
         const bombsDisplay = document.getElementById('bombsDisplay');
         bombsDisplay.innerHTML = '';

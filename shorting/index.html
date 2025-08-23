@@ -128,19 +128,19 @@
 
         .character-portrait {
             position: absolute;
-            width: 180px;
-            height: 250px;
+            width: 220px;
+            height: 300px;
             top: 50%;
             transform: translateY(-50%);
             transition: opacity 0.3s;
         }
 
         #leftCharacter {
-            left: 20px;
+            left: -10px;
         }
 
         #rightCharacter {
-            right: 20px;
+            right: 10px;
             left: 300px;
         }
 
@@ -149,8 +149,8 @@
         }
 
         .character-image {
-            width: 100%;
-            height: 100%;
+            width: 110%;
+            height: 110%;
             object-fit: contain;
         }
 
@@ -163,7 +163,7 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 32px;
+            font-size: 40px;
             font-weight: bold;
         }
 
@@ -257,21 +257,21 @@
                 <div style="color: #ffd700; font-size: 14px; margin-bottom: 5px;">SCORE</div>
                 <div style="font-size: 24px; font-weight: bold;"><span id="score">0</span></div>
             </div>
-            
+
             <div style="margin-bottom: 30px;">
                 <div style="color: #ffd700; font-size: 14px; margin-bottom: 5px;">PLAYER</div>
                 <div style="display: flex; gap: 5px;">
                     <span id="livesDisplay"></span>
                 </div>
             </div>
-            
+
             <div style="margin-bottom: 30px;">
                 <div style="color: #ffd700; font-size: 14px; margin-bottom: 5px;">SPELL CARD</div>
                 <div style="display: flex; gap: 5px;">
                     <span id="bombsDisplay"></span>
                 </div>
             </div>
-            
+
             <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); text-align: center;">
                 <img src="logo2.png" id="sidebarLogo" style="max-width: 160px; opacity: 0.8;" onerror="this.style.display='none';">
             </div>
