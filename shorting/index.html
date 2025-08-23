@@ -91,6 +91,108 @@
         .hidden {
             display: none !important;
         }
+        
+        /* 会話シーンのスタイル */
+        #dialogueScene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 20;
+        }
+        
+        #dialogueOverlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .character-portrait {
+            position: absolute;
+            width: 150px;
+            height: 200px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: opacity 0.3s;
+        }
+        
+        #leftCharacter {
+            left: 20px;
+        }
+        
+        #rightCharacter {
+            right: 20px;
+        }
+        
+        .character-portrait.inactive {
+            opacity: 0.5;
+        }
+        
+        .character-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .character-default {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        #dialogueBox {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 360px;
+            background: linear-gradient(to bottom, rgba(0,0,40,0.95), rgba(0,0,60,0.95));
+            border: 2px solid #4a5568;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+        
+        #speakerName {
+            color: #ffd700;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        #dialogueText {
+            color: white;
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 60px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        #dialoguePrompt {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            color: #ffd700;
+            font-size: 12px;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -107,6 +209,29 @@
                 Shift: 低速移動
             </div>
         </div>
+        
+        <!-- 会話シーン -->
+        <div id="dialogueScene">
+            <div id="dialogueOverlay"></div>
+            
+            <!-- 左側キャラクター -->
+            <div id="leftCharacter" class="character-portrait">
+                <div class="character-default">自機</div>
+            </div>
+            
+            <!-- 右側キャラクター -->
+            <div id="rightCharacter" class="character-portrait">
+                <div class="character-default">ボス</div>
+            </div>
+            
+            <!-- 会話ボックス -->
+            <div id="dialogueBox">
+                <div id="speakerName">???</div>
+                <div id="dialogueText"></div>
+                <div id="dialoguePrompt">▼ Zキーで進む</div>
+            </div>
+        </div>
+        
         <div id="info">
             <div>スコア: <span id="score">0</span></div>
             <div>残り人数: <span id="lives">3</span></div>

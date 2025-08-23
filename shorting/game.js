@@ -15,7 +15,9 @@ const game = {
     gameOver: false,
     paused: false,
     frameCount: 0,
-    started: false  // ゲーム開始フラグを追加
+    started: false,  // ゲーム開始フラグを追加
+    inDialogue: false,  // 会話中フラグ
+    bossDialogueShown: false  // ボス会話を表示済みか
 };
 
 const playerImage = new Image();
@@ -466,6 +468,15 @@ const keys = {
 };
 
 document.addEventListener('keydown', (e) => {
+    // 会話中の処理
+    if (game.inDialogue) {
+        if (e.key === 'z') {
+            dialogueSystem.next();
+            e.preventDefault();
+        }
+        return;
+    }
+    
     if (e.key in keys) {
         keys[e.key] = true;
         e.preventDefault();
@@ -502,6 +513,7 @@ function resetGame() {
     game.gameOver = false;
     game.frameCount = 0;
     game.started = true;  // ゲーム再開
+    game.bossDialogueShown = false;  // ボス会話フラグをリセット
 
     player.x = canvas.width / 2;
     player.bullets = [];
@@ -526,8 +538,10 @@ function spawnEnemy() {
         ));
     }
 
-    if (game.frameCount % 600 === 0 && enemies.filter(e => e.type === 'boss').length === 0) {
-        enemies.push(new Enemy(canvas.width / 2, -50, 'boss'));
+    // ボス出現タイミング（会話シーンを挟む）
+    if (game.frameCount % 600 === 0 && enemies.filter(e => e.type === 'boss').length === 0 && !game.bossDialogueShown) {
+        // 会話シーンを開始
+        dialogueSystem.start(dialogueSystem.getBossDialogue());
     }
 }
 
@@ -576,6 +590,11 @@ function updateGame() {
 
     if (!game.started) {
         return;  // ゲームが開始されていない場合はここで終了
+    }
+    
+    // 会話中は更新を停止
+    if (game.inDialogue) {
+        return;
     }
 
     if (!game.gameOver) {
@@ -689,5 +708,116 @@ document.getElementById('startButton').addEventListener('click', function() {
     
     playBGM();
 });
+
+// 会話システム
+class DialogueSystem {
+    constructor() {
+        this.dialogues = [];
+        this.currentIndex = 0;
+        this.isTyping = false;
+        this.typingSpeed = 30; // ミリ秒
+        this.currentText = '';
+        this.targetText = '';
+        this.charIndex = 0;
+        this.typingInterval = null;
+    }
+
+    // ボス戦前の会話データ
+    getBossDialogue() {
+        return [
+            { speaker: '自機', position: 'left', text: 'また会ったね。今度こそ決着をつけよう！' },
+            { speaker: 'ボス', position: 'right', text: 'ふふふ...前回は手加減してやったが...' },
+            { speaker: 'ボス', position: 'right', text: '今回は本気を出させてもらおう！' },
+            { speaker: '自機', position: 'left', text: 'やってみなさい！私も強くなったんだから！' }
+        ];
+    }
+
+    start(dialogues) {
+        this.dialogues = dialogues;
+        this.currentIndex = 0;
+        game.inDialogue = true;
+        game.paused = true;
+        
+        // 会話シーンを表示
+        document.getElementById('dialogueScene').style.display = 'block';
+        
+        this.showDialogue(0);
+    }
+
+    showDialogue(index) {
+        if (index >= this.dialogues.length) {
+            this.end();
+            return;
+        }
+
+        const dialogue = this.dialogues[index];
+        
+        // スピーカー名を更新
+        document.getElementById('speakerName').textContent = dialogue.speaker;
+        
+        // キャラクターの表示を更新
+        const leftChar = document.getElementById('leftCharacter');
+        const rightChar = document.getElementById('rightCharacter');
+        
+        if (dialogue.position === 'left') {
+            leftChar.classList.remove('inactive');
+            rightChar.classList.add('inactive');
+        } else {
+            leftChar.classList.add('inactive');
+            rightChar.classList.remove('inactive');
+        }
+        
+        // テキストをタイプライター効果で表示
+        this.typeText(dialogue.text);
+    }
+
+    typeText(text) {
+        this.isTyping = true;
+        this.targetText = text;
+        this.currentText = '';
+        this.charIndex = 0;
+        
+        const textElement = document.getElementById('dialogueText');
+        textElement.textContent = '';
+        
+        this.typingInterval = setInterval(() => {
+            if (this.charIndex < this.targetText.length) {
+                this.currentText += this.targetText[this.charIndex];
+                textElement.textContent = this.currentText;
+                this.charIndex++;
+            } else {
+                clearInterval(this.typingInterval);
+                this.isTyping = false;
+            }
+        }, this.typingSpeed);
+    }
+
+    next() {
+        if (this.isTyping) {
+            // タイピング中なら即座に全文表示
+            clearInterval(this.typingInterval);
+            document.getElementById('dialogueText').textContent = this.targetText;
+            this.isTyping = false;
+        } else {
+            // 次の会話へ
+            this.currentIndex++;
+            this.showDialogue(this.currentIndex);
+        }
+    }
+
+    end() {
+        game.inDialogue = false;
+        game.paused = false;
+        document.getElementById('dialogueScene').style.display = 'none';
+        
+        // ボス会話が終わったらボスを出現させる
+        if (!game.bossDialogueShown) {
+            game.bossDialogueShown = true;
+            enemies.push(new Enemy(canvas.width / 2, -50, 'boss'));
+        }
+    }
+}
+
+const dialogueSystem = new DialogueSystem();
 
 gameLoop();
