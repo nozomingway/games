@@ -808,7 +808,7 @@ class DialogueSystem {
         return [
             { speaker: 'ゆえうさぎ', position: 'right', text: 'ゆえお姉さま！48時間耐久配信なんて無謀です！全力で止めますわよ！' },
             { speaker: '月見里瑜依', position: 'left', text: 'やだやだやだもん！48時間やりきって、カッコいい大人のお姉さんになるんだから！！！' },
-            { speaker: 'ゆえうさぎ', position: 'right', text: 'はぁ...\n（だめだこいつはやくなんとかしないと...）' }
+            { speaker: 'ゆえうさぎ', position: 'right', text: 'はぁ...\n（だめだはやくなんとかしないと...）' }
         ];
     }
 
