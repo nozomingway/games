@@ -184,7 +184,8 @@ class Player {
 
     useBomb() {
         game.bombs--;
-        enemies.length = 0;
+        // ボス以外の敵のみ削除
+        enemies = enemies.filter(enemy => enemy.type === 'boss');
         enemyBullets.length = 0;
         this.invulnerable = 180;
 
