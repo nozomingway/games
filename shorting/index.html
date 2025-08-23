@@ -17,19 +17,23 @@
         }
         #gameContainer {
             position: relative;
-        }
-        canvas {
+            display: flex;
+            background: #111;
             border: 2px solid #444;
             box-shadow: 0 0 20px rgba(100, 100, 255, 0.5);
         }
+        canvas {
+            border-right: 2px solid #444;
+        }
         #info {
-            position: absolute;
-            top: 10px;
-            left: 10px;
+            width: 200px;
+            padding: 20px;
             color: white;
-            font-size: 18px;
+            font-size: 16px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             display: none;
+            background: linear-gradient(to bottom, #1a1a2e, #0f0f1e);
+            position: relative;
         }
         #controls {
             position: absolute;
@@ -240,9 +244,28 @@
         </div>
 
         <div id="info">
-            <div>スコア: <span id="score">0</span></div>
-            <div>残り人数: <span id="lives">3</span></div>
-            <div>スペルカード: <span id="bombs">3</span></div>
+            <div style="margin-bottom: 30px;">
+                <div style="color: #ffd700; font-size: 14px; margin-bottom: 5px;">SCORE</div>
+                <div style="font-size: 24px; font-weight: bold;"><span id="score">0</span></div>
+            </div>
+            
+            <div style="margin-bottom: 30px;">
+                <div style="color: #ffd700; font-size: 14px; margin-bottom: 5px;">PLAYER</div>
+                <div style="display: flex; gap: 5px;">
+                    <span id="livesDisplay"></span>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 30px;">
+                <div style="color: #ffd700; font-size: 14px; margin-bottom: 5px;">SPELL CARD</div>
+                <div style="display: flex; gap: 5px;">
+                    <span id="bombsDisplay"></span>
+                </div>
+            </div>
+            
+            <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); text-align: center;">
+                <img src="logo2.png" id="sidebarLogo" style="max-width: 160px; opacity: 0.8;" onerror="this.style.display='none';">
+            </div>
         </div>
         <div id="controls">
             矢印キー: 移動 | Z: ショット | X: スペルカード | Shift: 低速移動

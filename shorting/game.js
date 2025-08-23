@@ -761,9 +761,22 @@ function updateGame() {
         spawnEnemy();
         checkCollisions();
 
+        // スコアと残機、スペルカードの表示を更新
         document.getElementById('score').textContent = game.score;
-        document.getElementById('lives').textContent = game.lives;
-        document.getElementById('bombs').textContent = game.bombs;
+        
+        // 残機を桜アイコンで表示
+        const livesDisplay = document.getElementById('livesDisplay');
+        livesDisplay.innerHTML = '';
+        for (let i = 0; i < game.lives; i++) {
+            livesDisplay.innerHTML += '<span style="color: #ff99cc; font-size: 20px;">🌸</span>';
+        }
+        
+        // スペルカードを星アイコンで表示
+        const bombsDisplay = document.getElementById('bombsDisplay');
+        bombsDisplay.innerHTML = '';
+        for (let i = 0; i < game.bombs; i++) {
+            bombsDisplay.innerHTML += '<span style="color: #ffd700; font-size: 20px;">⭐</span>';
+        }
     }
 }
 
