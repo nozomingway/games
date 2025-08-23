@@ -296,7 +296,7 @@ class Enemy {
             // 発射頻度（時間経過で雑魚も早くなる）
             const difficultyLevel = Math.floor(game.frameCount / 600);
             const basicCooldown = Math.max(30, 60 - difficultyLevel * 5);
-            this.shootCooldown = this.type === 'boss' ? 8 : basicCooldown;
+            this.shootCooldown = this.type === 'boss' ? 15 : basicCooldown;  // ボスの発射間隔を長くして見やすく
         }
     }
 
@@ -314,14 +314,15 @@ class Enemy {
                 ));
             }
         } else if (this.type === 'boss') {
-            // ボスは12方向に増やして密度を上げる
-            for (let i = 0; i < 12; i++) {
-                const angle = (Math.PI * 2 / 12) * i + game.frameCount * 0.02;
+            // ボスは8方向の螺旋弾幕
+            for (let i = 0; i < 8; i++) {
+                const angle = (Math.PI * 2 / 8) * i + game.frameCount * 0.03;
+                const startRadius = 50;  // ボスから50ピクセル離れた位置から開始
                 enemyBullets.push(new EnemyBullet(
-                    this.x,
-                    this.y,
-                    Math.cos(angle) * 3,
-                    Math.sin(angle) * 3,
+                    this.x + Math.cos(angle) * startRadius,
+                    this.y + Math.sin(angle) * startRadius + 20,
+                    Math.cos(angle) * 2,
+                    Math.sin(angle) * 2,
                     'spiral'
                 ));
             }
@@ -604,10 +605,10 @@ function resetGame() {
 function spawnEnemy() {
     // ボスがいる場合は雑魚敵を出現させない
     const hasBoss = enemies.some(e => e.type === 'boss');
-    
+
     // 時間経過による難易度係数（0から始まって徐々に増加）
     const difficultyLevel = Math.floor(game.frameCount / 600); // 10秒ごとにレベルアップ
-    
+
     if (!hasBoss) {
         // 基本の敵出現（最初は60フレーム、徐々に早くなる）
         const baseSpawnRate = Math.max(20, 60 - difficultyLevel * 5);
@@ -618,7 +619,7 @@ function spawnEnemy() {
                 'basic'
             ));
         }
-        
+
         // レベル2以降：追加で横から出現する敵
         if (difficultyLevel >= 2) {
             const sideSpawnRate = Math.max(30, 60 - difficultyLevel * 3);
@@ -631,7 +632,7 @@ function spawnEnemy() {
                 ));
             }
         }
-        
+
         // レベル4以降：2体同時出現
         if (difficultyLevel >= 4 && game.frameCount % 90 === 0) {
             for (let i = 0; i < 2; i++) {
@@ -645,7 +646,7 @@ function spawnEnemy() {
     }
 
     // ボス出現タイミング（約30秒後）
-    if (game.frameCount === 1800 && !game.bossDialogueShown) {
+    if (game.frameCount === 600 && !game.bossDialogueShown) {
         // 会話シーンを開始
         dialogueSystem.start(dialogueSystem.getBossDialogue());
     }
