@@ -242,7 +242,7 @@ class Player {
             game.lives--;
             this.invulnerable = 180;
             this.x = canvas.width / 2;
-            
+
             // リスポーン時もエントリーアニメーション
             this.y = this.entryStartY;
             this.entryAnimation = true;
@@ -315,7 +315,7 @@ class Enemy {
 
     draw() {
         ctx.save();
-        
+
         if (this.type === 'boss') {
             // ボス画像の描画
             if (bossImageLoaded && bossImage.complete) {
@@ -333,7 +333,7 @@ class Enemy {
                 ctx.fillStyle = '#ff00ff';
                 ctx.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
             }
-            
+
             // ボスのHPバー
             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
             ctx.fillRect(50, 10, canvas.width - 100, 8);
@@ -359,7 +359,7 @@ class Enemy {
                 ctx.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
             }
         }
-        
+
         ctx.restore();
     }
 
@@ -476,7 +476,7 @@ document.addEventListener('keydown', (e) => {
         }
         return;
     }
-    
+
     if (e.key in keys) {
         keys[e.key] = true;
         e.preventDefault();
@@ -518,7 +518,7 @@ function resetGame() {
     player.x = canvas.width / 2;
     player.bullets = [];
     player.invulnerable = 0;
-    
+
     // リセット時もエントリーアニメーション
     player.startEntry();
 
@@ -591,7 +591,7 @@ function updateGame() {
     if (!game.started) {
         return;  // ゲームが開始されていない場合はここで終了
     }
-    
+
     // 会話中は更新を停止
     if (game.inDialogue) {
         return;
@@ -702,10 +702,10 @@ document.getElementById('startButton').addEventListener('click', function() {
 
     // ゲーム開始
     game.started = true;
-    
+
     // プレイヤーのエントリーアニメーションを開始
     player.startEntry();
-    
+
     playBGM();
 });
 
@@ -725,10 +725,9 @@ class DialogueSystem {
     // ボス戦前の会話データ
     getBossDialogue() {
         return [
-            { speaker: '自機', position: 'left', text: 'また会ったね。今度こそ決着をつけよう！' },
-            { speaker: 'ボス', position: 'right', text: 'ふふふ...前回は手加減してやったが...' },
-            { speaker: 'ボス', position: 'right', text: '今回は本気を出させてもらおう！' },
-            { speaker: '自機', position: 'left', text: 'やってみなさい！私も強くなったんだから！' }
+            { speaker: 'ゆえうさぎ', position: 'right', text: 'お姉さま！48時間耐久配信なんて無謀です！全力で止めますわよ！' },
+            { speaker: 'ゆえ', position: 'left', text: 'やだやだやだもん！48時間やりきって、カッコいい大人のお姉さんになるんだから！！！' },
+            { speaker: 'ゆえうさぎ', position: 'right', text: '（だめだこいつはやくなんとかしないと...）' }
         ];
     }
 
@@ -737,10 +736,10 @@ class DialogueSystem {
         this.currentIndex = 0;
         game.inDialogue = true;
         game.paused = true;
-        
+
         // 会話シーンを表示
         document.getElementById('dialogueScene').style.display = 'block';
-        
+
         this.showDialogue(0);
     }
 
@@ -751,14 +750,14 @@ class DialogueSystem {
         }
 
         const dialogue = this.dialogues[index];
-        
+
         // スピーカー名を更新
         document.getElementById('speakerName').textContent = dialogue.speaker;
-        
+
         // キャラクターの表示を更新
         const leftChar = document.getElementById('leftCharacter');
         const rightChar = document.getElementById('rightCharacter');
-        
+
         if (dialogue.position === 'left') {
             leftChar.classList.remove('inactive');
             rightChar.classList.add('inactive');
@@ -766,20 +765,30 @@ class DialogueSystem {
             leftChar.classList.add('inactive');
             rightChar.classList.remove('inactive');
         }
-        
+
         // テキストをタイプライター効果で表示
         this.typeText(dialogue.text);
     }
 
     typeText(text) {
+        const textElement = document.getElementById('dialogueText');
+        
+        // 心の声（括弧で囲まれたテキスト）は即座に表示
+        if (text.startsWith('（') && text.endsWith('）')) {
+            textElement.textContent = text;
+            this.isTyping = false;
+            this.targetText = text;
+            return;
+        }
+        
+        // 通常のタイプライター効果
         this.isTyping = true;
         this.targetText = text;
         this.currentText = '';
         this.charIndex = 0;
-        
-        const textElement = document.getElementById('dialogueText');
+
         textElement.textContent = '';
-        
+
         this.typingInterval = setInterval(() => {
             if (this.charIndex < this.targetText.length) {
                 this.currentText += this.targetText[this.charIndex];
@@ -809,7 +818,7 @@ class DialogueSystem {
         game.inDialogue = false;
         game.paused = false;
         document.getElementById('dialogueScene').style.display = 'none';
-        
+
         // ボス会話が終わったらボスを出現させる
         if (!game.bossDialogueShown) {
             game.bossDialogueShown = true;
