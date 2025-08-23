@@ -111,9 +111,26 @@ class Player {
         this.shootCooldown = 0;
         this.invulnerable = 0;
         this.hitboxRadius = 3;
+        this.entryAnimation = false;  // エントリーアニメーション中かどうか
+        this.entryStartY = canvas.height + 50;  // 画面外の開始位置
+        this.entryTargetY = canvas.height - 100;  // 目標位置
+        this.entrySpeed = 3;  // エントリー速度
     }
 
     update() {
+        // エントリーアニメーション中の処理
+        if (this.entryAnimation) {
+            if (this.y > this.entryTargetY) {
+                this.y -= this.entrySpeed;
+                if (this.y <= this.entryTargetY) {
+                    this.y = this.entryTargetY;
+                    this.entryAnimation = false;
+                    this.invulnerable = 60;  // エントリー後の無敵時間
+                }
+            }
+            return;  // エントリー中は他の操作を受け付けない
+        }
+
         const speed = this.isSlow ? this.slowSpeed : this.speed;
 
         if (keys.ArrowLeft && this.x > this.width/2) {
@@ -227,12 +244,21 @@ class Player {
             game.lives--;
             this.invulnerable = 180;
             this.x = canvas.width / 2;
-            this.y = canvas.height - 100;
+            
+            // リスポーン時もエントリーアニメーション
+            this.y = this.entryStartY;
+            this.entryAnimation = true;
 
             if (game.lives <= 0) {
                 game.gameOver = true;
             }
         }
+    }
+
+    // エントリーアニメーションを開始
+    startEntry() {
+        this.y = this.entryStartY;
+        this.entryAnimation = true;
     }
 }
 
@@ -482,9 +508,11 @@ function resetGame() {
     game.started = true;  // ゲーム再開
 
     player.x = canvas.width / 2;
-    player.y = canvas.height - 100;
     player.bullets = [];
     player.invulnerable = 0;
+    
+    // リセット時もエントリーアニメーション
+    player.startEntry();
 
     enemies = [];
     enemyBullets = [];
@@ -659,6 +687,10 @@ document.getElementById('startButton').addEventListener('click', function() {
 
     // ゲーム開始
     game.started = true;
+    
+    // プレイヤーのエントリーアニメーションを開始
+    player.startEntry();
+    
     playBGM();
 });
 
