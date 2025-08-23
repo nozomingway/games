@@ -267,10 +267,10 @@ class Enemy {
         this.type = type;
         this.width = type === 'boss' ? 80 : 32;  // ボスは大きく、通常敵は適度なサイズ
         this.height = type === 'boss' ? 80 : 32;
-        this.hp = type === 'boss' ? 100 : 3;
+        this.hp = type === 'boss' ? 150 : 2;  // HP調整（ボス強化、雑魚は少し弱く）
         this.shootCooldown = 0;
         this.movePattern = Math.random() * Math.PI * 2;
-        this.speed = type === 'boss' ? 1 : 2;
+        this.speed = type === 'boss' ? 1.5 : 2.5;  // 移動速度を上げる
     }
 
     update() {
@@ -292,21 +292,33 @@ class Enemy {
 
         if (this.shootCooldown === 0) {
             this.shoot();
-            this.shootCooldown = this.type === 'boss' ? 10 : 60;
+            // 発射頻度を上げる（ボス：10→8、雑魚：60→40）
+            this.shootCooldown = this.type === 'boss' ? 8 : 40;
         }
     }
 
     shoot() {
         if (this.type === 'basic') {
-            enemyBullets.push(new EnemyBullet(this.x, this.y + 10, 0, 3));
+            // 雑魚敵は3方向散弾
+            for (let i = -1; i <= 1; i++) {
+                const angle = Math.PI / 2 + (i * Math.PI / 6); // 中央と左右30度
+                const speed = 4;
+                enemyBullets.push(new EnemyBullet(
+                    this.x,
+                    this.y + 10,
+                    Math.cos(angle) * speed,
+                    Math.sin(angle) * speed
+                ));
+            }
         } else if (this.type === 'boss') {
-            for (let i = 0; i < 8; i++) {
-                const angle = (Math.PI * 2 / 8) * i + game.frameCount * 0.02;
+            // ボスは12方向に増やして密度を上げる
+            for (let i = 0; i < 12; i++) {
+                const angle = (Math.PI * 2 / 12) * i + game.frameCount * 0.02;
                 enemyBullets.push(new EnemyBullet(
                     this.x,
                     this.y,
-                    Math.cos(angle) * 2,
-                    Math.sin(angle) * 2,
+                    Math.cos(angle) * 3,
+                    Math.sin(angle) * 3,
                     'spiral'
                 ));
             }
@@ -587,16 +599,27 @@ function resetGame() {
 }
 
 function spawnEnemy() {
-    if (game.frameCount % 60 === 0) {
+    // 敵の出現頻度を上げる（60→30フレームごと）
+    if (game.frameCount % 30 === 0) {
         enemies.push(new Enemy(
             Math.random() * (canvas.width - 40) + 20,
             -20,
             'basic'
         ));
     }
+    
+    // 追加で横から出現する敵（45フレームごと）
+    if (game.frameCount % 45 === 0 && game.frameCount > 120) {
+        const side = Math.random() < 0.5 ? -20 : canvas.width + 20;
+        enemies.push(new Enemy(
+            side,
+            100 + Math.random() * 200,
+            'basic'
+        ));
+    }
 
-    // ボス出現タイミング（会話シーンを挟む）
-    if (game.frameCount % 600 === 0 && enemies.filter(e => e.type === 'boss').length === 0 && !game.bossDialogueShown) {
+    // ボス出現タイミング（会話シーンを挟む）- 少し早める
+    if (game.frameCount % 480 === 0 && enemies.filter(e => e.type === 'boss').length === 0 && !game.bossDialogueShown) {
         // 会話シーンを開始
         dialogueSystem.start(dialogueSystem.getBossDialogue());
     }
