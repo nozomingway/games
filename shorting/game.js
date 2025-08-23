@@ -299,9 +299,12 @@ class Enemy {
         this.width = type === 'boss' ? 80 : 32;  // ボスは大きく、通常敵は適度なサイズ
         this.height = type === 'boss' ? 80 : 32;
         this.hp = type === 'boss' ? 150 : 2;  // HP調整（ボス強化、雑魚は少し弱く）
+        this.maxHp = type === 'boss' ? 150 : 2;  // 最大HP保存
         this.shootCooldown = 0;
         this.movePattern = Math.random() * Math.PI * 2;
         this.speed = type === 'boss' ? 1.5 : 2.5;  // 移動速度を上げる
+        this.attackPhase = 0;  // ボスの攻撃フェーズ
+        this.phaseCooldown = 0;  // フェーズ変更のクールダウン
     }
 
     update() {
@@ -315,6 +318,21 @@ class Enemy {
             if (this.y < 100) {
                 this.y += this.speed;
             }
+            
+            // HPに応じてフェーズ変更
+            const hpRatio = this.hp / this.maxHp;
+            if (hpRatio > 0.66) {
+                this.attackPhase = 0;  // フェーズ1
+            } else if (hpRatio > 0.33) {
+                this.attackPhase = 1;  // フェーズ2
+            } else {
+                this.attackPhase = 2;  // フェーズ3（最終）
+            }
+            
+            // フェーズ変更時のクールダウン管理
+            if (this.phaseCooldown > 0) {
+                this.phaseCooldown--;
+            }
         }
 
         if (this.shootCooldown > 0) {
@@ -323,10 +341,22 @@ class Enemy {
 
         if (this.shootCooldown === 0) {
             this.shoot();
-            // 発射頻度（時間経過で雑魚も早くなる）
+            // 発射頻度（時間経過で雑魚も早くなる、ボスはフェーズごとに変更）
             const difficultyLevel = Math.floor(game.frameCount / 600);
             const basicCooldown = Math.max(30, 60 - difficultyLevel * 5);
-            this.shootCooldown = this.type === 'boss' ? 15 : basicCooldown;  // ボスの発射間隔を長くして見やすく
+            
+            if (this.type === 'boss') {
+                // フェーズごとに発射間隔を変更
+                if (this.attackPhase === 0) {
+                    this.shootCooldown = 20;  // フェーズ1: ゆっくり
+                } else if (this.attackPhase === 1) {
+                    this.shootCooldown = 15;  // フェーズ2: 普通
+                } else {
+                    this.shootCooldown = 10;  // フェーズ3: 高速
+                }
+            } else {
+                this.shootCooldown = basicCooldown;
+            }
         }
     }
 
@@ -344,17 +374,69 @@ class Enemy {
                 ));
             }
         } else if (this.type === 'boss') {
-            // ボスは8方向の螺旋弾幕
-            for (let i = 0; i < 8; i++) {
-                const angle = (Math.PI * 2 / 8) * i + game.frameCount * 0.03;
-                const startRadius = 50;  // ボスから50ピクセル離れた位置から開始
-                enemyBullets.push(new EnemyBullet(
-                    this.x + Math.cos(angle) * startRadius,
-                    this.y + Math.sin(angle) * startRadius + 20,
-                    Math.cos(angle) * 2,
-                    Math.sin(angle) * 2,
-                    'spiral'
-                ));
+            // ボスの攻撃パターンをフェーズごとに変更
+            if (this.attackPhase === 0) {
+                // フェーズ1: 基本の螺旋弾幕
+                for (let i = 0; i < 8; i++) {
+                    const angle = (Math.PI * 2 / 8) * i + game.frameCount * 0.03;
+                    const startRadius = 50;
+                    enemyBullets.push(new EnemyBullet(
+                        this.x + Math.cos(angle) * startRadius,
+                        this.y + Math.sin(angle) * startRadius + 20,
+                        Math.cos(angle) * 2,
+                        Math.sin(angle) * 2,
+                        'spiral'
+                    ));
+                }
+            } else if (this.attackPhase === 1) {
+                // フェーズ2: 十字弾幕＋螺旋
+                // 十字方向の弾
+                for (let i = 0; i < 4; i++) {
+                    const angle = (Math.PI / 2) * i;
+                    enemyBullets.push(new EnemyBullet(
+                        this.x, this.y + 20,
+                        Math.cos(angle) * 4,
+                        Math.sin(angle) * 4,
+                        'cross'
+                    ));
+                }
+                // 螺旋弾も追加
+                for (let i = 0; i < 6; i++) {
+                    const angle = (Math.PI * 2 / 6) * i + game.frameCount * 0.05;
+                    const startRadius = 40;
+                    enemyBullets.push(new EnemyBullet(
+                        this.x + Math.cos(angle) * startRadius,
+                        this.y + Math.sin(angle) * startRadius + 20,
+                        Math.cos(angle) * 1.5,
+                        Math.sin(angle) * 1.5,
+                        'spiral'
+                    ));
+                }
+            } else if (this.attackPhase === 2) {
+                // フェーズ3: 全方向大量弾幕（最終攻撃）
+                for (let i = 0; i < 16; i++) {
+                    const angle = (Math.PI * 2 / 16) * i + game.frameCount * 0.02;
+                    const startRadius = 60;
+                    const speed = 2.5;
+                    enemyBullets.push(new EnemyBullet(
+                        this.x + Math.cos(angle) * startRadius,
+                        this.y + Math.sin(angle) * startRadius + 20,
+                        Math.cos(angle) * speed,
+                        Math.sin(angle) * speed,
+                        'spiral'
+                    ));
+                }
+                // プレイヤー狙い弾も追加
+                const playerAngle = Math.atan2(player.y - this.y, player.x - this.x);
+                for (let i = -1; i <= 1; i++) {
+                    const angle = playerAngle + (i * Math.PI / 8);
+                    enemyBullets.push(new EnemyBullet(
+                        this.x, this.y + 20,
+                        Math.cos(angle) * 3,
+                        Math.sin(angle) * 3,
+                        'aimed'
+                    ));
+                }
             }
         }
     }
@@ -367,19 +449,19 @@ class Enemy {
             if (bossImageLoaded && bossImage.complete) {
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
-                
+
                 // 画像の元のサイズを取得
                 const imgWidth = bossImage.naturalWidth;
                 const imgHeight = bossImage.naturalHeight;
-                
+
                 // アスペクト比を保持してスケール計算
                 let drawWidth = this.width;
                 let drawHeight = this.height;
-                
+
                 if (imgWidth > 0 && imgHeight > 0) {
                     const imgAspect = imgWidth / imgHeight;
                     const targetAspect = this.width / this.height;
-                    
+
                     if (imgAspect > targetAspect) {
                         // 画像が横長の場合、幅を基準にする
                         drawHeight = this.width / imgAspect;
@@ -388,7 +470,7 @@ class Enemy {
                         drawWidth = this.height * imgAspect;
                     }
                 }
-                
+
                 ctx.drawImage(
                     bossImage,
                     Math.floor(this.x - drawWidth / 2),
@@ -475,19 +557,38 @@ class EnemyBullet {
     }
 
     draw() {
-        if (this.type === 'spiral') {
+        if (this.type === 'spiral' || this.type === 'cross' || this.type === 'aimed') {
             // ボスの弾を星型に
             ctx.save();
             ctx.translate(this.x, this.y);
 
-            // 回転アニメーション
-            ctx.rotate(Date.now() * 0.004 + this.x);
+            // 弾の種類別の見た目と回転速度
+            let outerRadius, innerRadius, colors, rotationSpeed;
+            
+            if (this.type === 'spiral') {
+                // 螺旋弾: 黄色の星
+                outerRadius = 10;
+                innerRadius = 4;
+                colors = ['#ffff99', '#ffd700', '#ff9900'];
+                rotationSpeed = 0.004;
+            } else if (this.type === 'cross') {
+                // 十字弾: 青い大きな星
+                outerRadius = 12;
+                innerRadius = 5;
+                colors = ['#99ccff', '#0080ff', '#0066cc'];
+                rotationSpeed = 0.006;
+            } else if (this.type === 'aimed') {
+                // 狙い弾: 赤い小さな星
+                outerRadius = 8;
+                innerRadius = 3;
+                colors = ['#ff9999', '#ff4444', '#cc0000'];
+                rotationSpeed = 0.008;
+            }
+            
+            ctx.rotate(Date.now() * rotationSpeed + this.x);
 
-            // 星型を描画（5つの頂点）
+            // 星型を描画
             ctx.beginPath();
-            const outerRadius = 10;
-            const innerRadius = 4;
-
             for (let i = 0; i < 10; i++) {
                 const angle = (Math.PI * 2 / 10) * i - Math.PI / 2;
                 const radius = i % 2 === 0 ? outerRadius : innerRadius;
@@ -502,16 +603,16 @@ class EnemyBullet {
             }
             ctx.closePath();
 
-            // 黄色のグラデーション
+            // グラデーション
             const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, outerRadius);
-            gradient.addColorStop(0, '#ffff99');
-            gradient.addColorStop(0.5, '#ffd700');
-            gradient.addColorStop(1, '#ff9900');
+            gradient.addColorStop(0, colors[0]);
+            gradient.addColorStop(0.5, colors[1]);
+            gradient.addColorStop(1, colors[2]);
             ctx.fillStyle = gradient;
             ctx.fill();
 
             // 星の輪郭
-            ctx.strokeStyle = '#ffcc00';
+            ctx.strokeStyle = colors[1];
             ctx.lineWidth = 1;
             ctx.stroke();
 
@@ -701,7 +802,7 @@ function spawnEnemy() {
     }
 
     // ボス出現タイミング（約30秒後）
-    if (game.frameCount === 100 && !game.bossDialogueShown) {
+    if (game.frameCount === 1800 && !game.bossDialogueShown) {
         // 会話シーンを開始
         dialogueSystem.start(dialogueSystem.getBossDialogue());
     }
