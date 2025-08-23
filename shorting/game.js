@@ -294,7 +294,7 @@ class Enemy {
         if (this.shootCooldown === 0) {
             this.shoot();
             // 発射頻度を上げる（ボス：10→8、雑魚：60→40）
-            this.shootCooldown = this.type === 'boss' ? 8 : 40;
+            this.shootCooldown = this.type === 'boss' ? 8 : 60;
         }
     }
 
@@ -602,7 +602,7 @@ function resetGame() {
 function spawnEnemy() {
     // ボスがいる場合は雑魚敵を出現させない
     const hasBoss = enemies.some(e => e.type === 'boss');
-    
+
     if (!hasBoss) {
         // 敵の出現頻度を上げる（60→30フレームごと）
         if (game.frameCount % 30 === 0) {
