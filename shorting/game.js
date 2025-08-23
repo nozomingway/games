@@ -200,10 +200,6 @@ class Player {
     draw() {
         ctx.save();
 
-        if (this.invulnerable > 0 && this.invulnerable % 6 < 3) {
-            ctx.globalAlpha = 0.5;
-        }
-
         if (imageLoaded && playerImage.complete) {
             ctx.drawImage(
                 playerImage,
