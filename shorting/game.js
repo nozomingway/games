@@ -232,9 +232,39 @@ class Player {
 
         ctx.restore();
 
-        ctx.fillStyle = '#ffff00';
+        // 主人公の弾を桜の花びらに
         this.bullets.forEach(bullet => {
-            ctx.fillRect(bullet.x - bullet.width/2, bullet.y, bullet.width, bullet.height);
+            ctx.save();
+            ctx.translate(bullet.x, bullet.y);
+            
+            // 回転アニメーション
+            ctx.rotate(Date.now() * 0.003 + bullet.x);
+            
+            // 小さめの桜の花びらを描画（5枚）
+            for (let i = 0; i < 5; i++) {
+                ctx.rotate(Math.PI * 2 / 5);
+                ctx.beginPath();
+                
+                // 花びらの形状（小さめ）
+                ctx.moveTo(0, 0);
+                ctx.quadraticCurveTo(-2, -5, 0, -6);
+                ctx.quadraticCurveTo(2, -5, 0, 0);
+                
+                // ピンクのグラデーション
+                const gradient = ctx.createRadialGradient(0, -3, 0, 0, -3, 5);
+                gradient.addColorStop(0, '#ffb3d9');
+                gradient.addColorStop(1, '#ff66b3');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            }
+            
+            // 中心の花芯
+            ctx.beginPath();
+            ctx.arc(0, 0, 1, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffff99';
+            ctx.fill();
+            
+            ctx.restore();
         });
     }
 
@@ -424,41 +454,44 @@ class EnemyBullet {
 
     draw() {
         if (this.type === 'spiral') {
-            // ボスの弾を桜の花びらに
+            // ボスの弾を星型に
             ctx.save();
             ctx.translate(this.x, this.y);
 
             // 回転アニメーション
-            ctx.rotate(Date.now() * 0.002 + this.x);
+            ctx.rotate(Date.now() * 0.004 + this.x);
 
-            // 桜の花びらを描画（5枚）
-            for (let i = 0; i < 5; i++) {
-                ctx.rotate(Math.PI * 2 / 5);
-                ctx.beginPath();
-
-                // 花びらの形状
-                ctx.moveTo(0, 0);
-                ctx.quadraticCurveTo(-3, -8, 0, -10);
-                ctx.quadraticCurveTo(3, -8, 0, 0);
-
-                // ピンクのグラデーション
-                const gradient = ctx.createRadialGradient(0, -5, 0, 0, -5, 8);
-                gradient.addColorStop(0, '#ffb3d9');
-                gradient.addColorStop(1, '#ff66b3');
-                ctx.fillStyle = gradient;
-                ctx.fill();
-
-                // 花びらの輪郭
-                ctx.strokeStyle = '#ff99cc';
-                ctx.lineWidth = 0.5;
-                ctx.stroke();
-            }
-
-            // 中心の花芯
+            // 星型を描画（5つの頂点）
             ctx.beginPath();
-            ctx.arc(0, 0, 2, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffff99';
+            const outerRadius = 10;
+            const innerRadius = 4;
+            
+            for (let i = 0; i < 10; i++) {
+                const angle = (Math.PI * 2 / 10) * i - Math.PI / 2;
+                const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
+            
+            // 黄色のグラデーション
+            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, outerRadius);
+            gradient.addColorStop(0, '#ffff99');
+            gradient.addColorStop(0.5, '#ffd700');
+            gradient.addColorStop(1, '#ff9900');
+            ctx.fillStyle = gradient;
             ctx.fill();
+            
+            // 星の輪郭
+            ctx.strokeStyle = '#ffcc00';
+            ctx.lineWidth = 1;
+            ctx.stroke();
 
             ctx.restore();
         } else {
