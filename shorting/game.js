@@ -423,44 +423,44 @@ class EnemyBullet {
             // ボスの弾を桜の花びらに
             ctx.save();
             ctx.translate(this.x, this.y);
-            
+
             // 回転アニメーション
             ctx.rotate(Date.now() * 0.002 + this.x);
-            
+
             // 桜の花びらを描画（5枚）
             for (let i = 0; i < 5; i++) {
                 ctx.rotate(Math.PI * 2 / 5);
                 ctx.beginPath();
-                
+
                 // 花びらの形状
                 ctx.moveTo(0, 0);
                 ctx.quadraticCurveTo(-3, -8, 0, -10);
                 ctx.quadraticCurveTo(3, -8, 0, 0);
-                
+
                 // ピンクのグラデーション
                 const gradient = ctx.createRadialGradient(0, -5, 0, 0, -5, 8);
                 gradient.addColorStop(0, '#ffb3d9');
                 gradient.addColorStop(1, '#ff66b3');
                 ctx.fillStyle = gradient;
                 ctx.fill();
-                
+
                 // 花びらの輪郭
                 ctx.strokeStyle = '#ff99cc';
                 ctx.lineWidth = 0.5;
                 ctx.stroke();
             }
-            
+
             // 中心の花芯
             ctx.beginPath();
             ctx.arc(0, 0, 2, 0, Math.PI * 2);
             ctx.fillStyle = '#ffff99';
             ctx.fill();
-            
+
             ctx.restore();
         } else {
             // 雑魚敵の弾を人参に
             ctx.save();
-            
+
             // 人参の本体（オレンジ色の三角形）
             ctx.fillStyle = '#ff6600';
             ctx.beginPath();
@@ -469,15 +469,15 @@ class EnemyBullet {
             ctx.lineTo(this.x + 4, this.y - 4);  // 右上
             ctx.closePath();
             ctx.fill();
-            
+
             // 人参の葉っぱ（緑色）
             ctx.fillStyle = '#00cc00';
             ctx.fillRect(this.x - 3, this.y - 6, 6, 3);
-            
+
             // 葉っぱのディテール
             ctx.fillStyle = '#009900';
             ctx.fillRect(this.x - 1, this.y - 7, 2, 2);
-            
+
             ctx.restore();
         }
     }
@@ -607,7 +607,7 @@ function spawnEnemy() {
             'basic'
         ));
     }
-    
+
     // 追加で横から出現する敵（45フレームごと）
     if (game.frameCount % 45 === 0 && game.frameCount > 120) {
         const side = Math.random() < 0.5 ? -20 : canvas.width + 20;
@@ -805,9 +805,9 @@ class DialogueSystem {
     // ボス戦前の会話データ
     getBossDialogue() {
         return [
-            { speaker: 'ゆえうさぎ', position: 'right', text: 'お姉さま！48時間耐久配信なんて無謀です！全力で止めますわよ！' },
+            { speaker: 'ゆえうさぎ', position: 'right', text: 'ゆえお姉さま！48時間耐久配信なんて無謀です！全力で止めますわよ！' },
             { speaker: '月見里瑜依', position: 'left', text: 'やだやだやだもん！48時間やりきって、カッコいい大人のお姉さんになるんだから！！！' },
-            { speaker: 'ゆえうさぎ', position: 'right', text: '（だめだこいつはやくなんとかしないと...）' }
+            { speaker: 'ゆえうさぎ', position: 'right', text: 'はぁ...\n（だめだこいつはやくなんとかしないと...）' }
         ];
     }
 
