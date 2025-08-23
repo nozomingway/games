@@ -600,23 +600,28 @@ function resetGame() {
 }
 
 function spawnEnemy() {
-    // 敵の出現頻度を上げる（60→30フレームごと）
-    if (game.frameCount % 30 === 0) {
-        enemies.push(new Enemy(
-            Math.random() * (canvas.width - 40) + 20,
-            -20,
-            'basic'
-        ));
-    }
+    // ボスがいる場合は雑魚敵を出現させない
+    const hasBoss = enemies.some(e => e.type === 'boss');
+    
+    if (!hasBoss) {
+        // 敵の出現頻度を上げる（60→30フレームごと）
+        if (game.frameCount % 30 === 0) {
+            enemies.push(new Enemy(
+                Math.random() * (canvas.width - 40) + 20,
+                -20,
+                'basic'
+            ));
+        }
 
-    // 追加で横から出現する敵（45フレームごと）
-    if (game.frameCount % 45 === 0 && game.frameCount > 120) {
-        const side = Math.random() < 0.5 ? -20 : canvas.width + 20;
-        enemies.push(new Enemy(
-            side,
-            100 + Math.random() * 200,
-            'basic'
-        ));
+        // 追加で横から出現する敵（45フレームごと）
+        if (game.frameCount % 45 === 0 && game.frameCount > 120) {
+            const side = Math.random() < 0.5 ? -20 : canvas.width + 20;
+            enemies.push(new Enemy(
+                side,
+                100 + Math.random() * 200,
+                'basic'
+            ));
+        }
     }
 
     // ボス出現タイミング（会話シーンを挟む）- 少し早める
@@ -903,6 +908,10 @@ class DialogueSystem {
         // ボス会話が終わったらボスを出現させる
         if (!game.bossDialogueShown) {
             game.bossDialogueShown = true;
+            // 雑魚敵を全て削除
+            enemies = enemies.filter(e => e.type === 'boss');
+            enemyBullets = [];  // 雑魚敵の弾も削除
+            // ボスを出現させる
             enemies.push(new Enemy(canvas.width / 2, -50, 'boss'));
         }
     }
