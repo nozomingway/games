@@ -543,7 +543,16 @@ class EnemyBullet {
         this.vx = vx;
         this.vy = vy;
         this.type = type;
-        this.radius = type === 'spiral' ? 6 : 4;
+        // 弾の種類によって当たり判定を調整
+        if (type === 'spiral') {
+            this.radius = 6;
+        } else if (type === 'cross') {
+            this.radius = 7;  // 十字弾は少し大きい
+        } else if (type === 'aimed') {
+            this.radius = 5;  // 狙い弾は小さい
+        } else {
+            this.radius = 4;  // 通常弾
+        }
     }
 
     update() {
