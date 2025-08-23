@@ -80,7 +80,7 @@ bossImage.onerror = function() {
 
 const bgm = new Audio('bgm.mp3');
 bgm.loop = true;
-bgm.volume = 0.1;
+bgm.volume = 0.5;
 
 bgm.addEventListener('canplaythrough', function() {
     console.log('BGMが読み込まれました');
@@ -319,7 +319,7 @@ class Enemy {
             if (this.y < 100) {
                 this.y += this.speed;
             }
-            
+
             // HPに応じてフェーズ変更
             const hpRatio = this.hp / this.maxHp;
             if (hpRatio > 0.66) {
@@ -329,7 +329,7 @@ class Enemy {
             } else {
                 this.attackPhase = 2;  // フェーズ3（最終）
             }
-            
+
             // フェーズ変更時のクールダウン管理
             if (this.phaseCooldown > 0) {
                 this.phaseCooldown--;
@@ -345,7 +345,7 @@ class Enemy {
             // 発射頻度（時間経過で雑魚も早くなる、ボスはフェーズごとに変更）
             const difficultyLevel = Math.floor(game.frameCount / 600);
             const basicCooldown = Math.max(30, 60 - difficultyLevel * 5);
-            
+
             if (this.type === 'boss') {
                 // フェーズごとに発射間隔を変更
                 if (this.attackPhase === 0) {
@@ -574,7 +574,7 @@ class EnemyBullet {
 
             // 弾の種類別の見た目と回転速度
             let outerRadius, innerRadius, colors, rotationSpeed;
-            
+
             if (this.type === 'spiral') {
                 // 螺旋弾: 黄色の星
                 outerRadius = 10;
@@ -594,7 +594,7 @@ class EnemyBullet {
                 colors = ['#ff9999', '#ff4444', '#cc0000'];
                 rotationSpeed = 0.008;
             }
-            
+
             ctx.rotate(Date.now() * rotationSpeed + this.x);
 
             // 星型を描画
