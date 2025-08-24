@@ -49,7 +49,7 @@ function resizeCanvas() {
     // マウス初期位置を調整（mouseオブジェクトが存在する場合のみ）
     if (typeof mouse !== 'undefined') {
         mouse.x = canvas.width / 2;
-        mouse.y = canvas.height - 80; // iPhone用に調整
+        mouse.y = canvas.height * 0.85; // プレイヤー初期位置と同じ
     }
 }
 
@@ -156,18 +156,18 @@ function stopBGM() {
 class Player {
     constructor() {
         this.x = canvas.width / 2;
-        this.y = canvas.height - 100;
-        this.width = 60;  // より適切なサイズに調整
-        this.height = 60;  // より適切なサイズに調整
-        this.speed = 4;
+        this.y = canvas.height * 0.85;  // 画面の85%の位置
+        this.width = Math.max(40, canvas.width * 0.12);  // 画面幅の12%
+        this.height = Math.max(40, canvas.width * 0.12);  // 画面幅の12%
+        this.speed = Math.max(3, canvas.width * 0.012);  // 画面幅に比例した速度
         this.bullets = [];
         this.shootCooldown = 0;
         this.invulnerable = 0;
         this.hitboxRadius = 3;
         this.entryAnimation = false;  // エントリーアニメーション中かどうか
-        this.entryStartY = canvas.height + 50;  // 画面外の開始位置
-        this.entryTargetY = canvas.height - 100;  // 目標位置
-        this.entrySpeed = 3;  // エントリー速度
+        this.entryStartY = canvas.height + this.height;  // 画面外の開始位置
+        this.entryTargetY = canvas.height * 0.85;  // 目標位置（画面の85%）
+        this.entrySpeed = Math.max(2, canvas.height * 0.008);  // エントリー速度
     }
 
     update() {
@@ -239,17 +239,23 @@ class Player {
         }
 
         this.bullets = this.bullets.filter(bullet => {
-            bullet.y -= 15;
-            return bullet.y > -10;
+            // 弾丸速度を画面サイズに応じて調整
+            const bulletSpeed = Math.max(10, canvas.height * 0.02);
+            bullet.y -= bulletSpeed;
+            return bullet.y > -bullet.height;
         });
     }
 
     shoot() {
+        // 弾丸サイズを画面サイズに応じて調整
+        const bulletWidth = Math.max(3, canvas.width * 0.012);
+        const bulletHeight = Math.max(8, canvas.width * 0.035);
+        
         this.bullets.push({
             x: this.x,
-            y: this.y - 10,
-            width: 4,
-            height: 12
+            y: this.y - this.height/2,
+            width: bulletWidth,
+            height: bulletHeight
         });
     }
 
@@ -345,7 +351,9 @@ class Player {
             this.invulnerable = 180;
             this.x = canvas.width / 2;
 
-            // リスポーン時もエントリーアニメーション
+            // リスポーン時もエントリーアニメーション（動的サイズに対応）
+            this.entryStartY = canvas.height + this.height;
+            this.entryTargetY = canvas.height * 0.85;
             this.y = this.entryStartY;
             this.entryAnimation = true;
 
@@ -357,6 +365,8 @@ class Player {
 
     // エントリーアニメーションを開始
     startEntry() {
+        this.entryStartY = canvas.height + this.height;
+        this.entryTargetY = canvas.height * 0.85;
         this.y = this.entryStartY;
         this.entryAnimation = true;
     }
@@ -367,15 +377,23 @@ class Enemy {
         this.x = x;
         this.y = y;
         this.type = type;
-        this.width = type === 'boss' ? 80 : 32;  // ボスは大きく、通常敵は適度なサイズ
-        this.height = type === 'boss' ? 80 : 32;
-        this.hp = type === 'boss' ? 150 : 2;  // HP調整（ボス強化、雑魚は少し弱く）
-        this.maxHp = type === 'boss' ? 150 : 2;  // 最大HP保存
+        
+        // 画面サイズに応じて敵のサイズを調整
+        const baseSize = Math.max(24, canvas.width * 0.08);
+        this.width = type === 'boss' ? baseSize * 2.5 : baseSize;
+        this.height = type === 'boss' ? baseSize * 2.5 : baseSize;
+        
+        this.hp = type === 'boss' ? 150 : 2;
+        this.maxHp = type === 'boss' ? 150 : 2;
         this.shootCooldown = 0;
         this.movePattern = Math.random() * Math.PI * 2;
-        this.speed = type === 'boss' ? 1.5 : 2.5;  // 移動速度を上げる
-        this.attackPhase = 0;  // ボスの攻撃フェーズ
-        this.phaseCooldown = 0;  // フェーズ変更のクールダウン
+        
+        // 画面サイズに応じて速度を調整
+        const baseSpeed = Math.max(1, canvas.height * 0.003);
+        this.speed = type === 'boss' ? baseSpeed * 0.8 : baseSpeed * 1.2;
+        
+        this.attackPhase = 0;
+        this.phaseCooldown = 0;
     }
 
     update() {
@@ -385,8 +403,13 @@ class Enemy {
             this.y += this.speed;
         } else if (this.type === 'boss') {
             this.movePattern += 0.02;
-            this.x = canvas.width/2 + Math.sin(this.movePattern) * 100;
-            if (this.y < 100) {
+            // ボスの横移動範囲を画面サイズに応じて調整
+            const moveRange = Math.min(100, canvas.width * 0.25);
+            this.x = canvas.width/2 + Math.sin(this.movePattern) * moveRange;
+            
+            // ボスの停止位置を画面の上部15%に調整
+            const targetY = canvas.height * 0.15;
+            if (this.y < targetY) {
                 this.y += this.speed;
             }
 
@@ -778,14 +801,14 @@ const keys = {
 // マウス位置を追跡
 const mouse = {
     x: canvas.width / 2,
-    y: canvas.height - 100,
+    y: canvas.height * 0.85,
     isActive: false,
     isClicked: false
 };
 
 // マウス初期位置を現在のキャンバスサイズに合わせて再設定
 mouse.x = canvas.width / 2;
-mouse.y = canvas.height - 100;
+mouse.y = canvas.height * 0.85;
 
 // mouseオブジェクト定義後にresizeCanvas()を呼び出し
 resizeCanvas();
@@ -1024,13 +1047,16 @@ function updateGame() {
 
         enemies = enemies.filter(enemy => {
             enemy.update();
-            return enemy.y < canvas.height + 50;
+            // 敵が画面外に出たら削除（画面サイズに応じて調整）
+            return enemy.y < canvas.height + enemy.height;
         });
 
         enemyBullets = enemyBullets.filter(bullet => {
             bullet.update();
-            return bullet.x > -20 && bullet.x < canvas.width + 20 &&
-                   bullet.y > -20 && bullet.y < canvas.height + 20;
+            // 弾丸の範囲チェックを画面サイズに応じて調整
+            const margin = Math.max(20, canvas.width * 0.05);
+            return bullet.x > -margin && bullet.x < canvas.width + margin &&
+                   bullet.y > -margin && bullet.y < canvas.height + margin;
         });
 
         particles = particles.filter(particle => {
