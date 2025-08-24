@@ -153,7 +153,7 @@ class Player {
             this.shootCooldown--;
         }
 
-        if (keys.z && this.shootCooldown === 0) {
+        if (this.shootCooldown === 0) {
             this.shoot();
             this.shootCooldown = 4;
         }
