@@ -107,7 +107,7 @@ class Player {
         this.y = canvas.height - 100;
         this.width = 60;  // より適切なサイズに調整
         this.height = 60;  // より適切なサイズに調整
-        this.speed = 2;
+        this.speed = 4;
         this.bullets = [];
         this.shootCooldown = 0;
         this.invulnerable = 0;
@@ -132,8 +132,8 @@ class Player {
             return;  // エントリー中は他の操作を受け付けない
         }
 
-        // マウス操作が有効な場合はマウス位置に追従、そうでなければキーボード操作
-        if (mouse.isActive) {
+        // マウス操作が有効で、かつ左クリック中の場合のみマウス位置に追従
+        if (mouse.isActive && mouse.isClicked) {
             // マウス位置に向かって移動（スムーズな移動のため速度制限）
             const dx = mouse.x - this.x;
             const dy = mouse.y - this.y;
@@ -727,7 +727,8 @@ const keys = {
 const mouse = {
     x: canvas.width / 2,
     y: canvas.height - 100,
-    isActive: false
+    isActive: false,
+    isClicked: false
 };
 
 document.addEventListener('keydown', (e) => {
@@ -771,12 +772,30 @@ canvas.addEventListener('mousemove', (e) => {
     mouse.isActive = true;
 });
 
-canvas.addEventListener('mouseenter', (e) => {
+canvas.addEventListener('mouseenter', () => {
     mouse.isActive = true;
 });
 
-canvas.addEventListener('mouseleave', (e) => {
+canvas.addEventListener('mouseleave', () => {
     mouse.isActive = false;
+});
+
+// マウスクリックイベント
+canvas.addEventListener('mousedown', (e) => {
+    if (e.button === 0) { // 左クリック
+        mouse.isClicked = true;
+    }
+});
+
+canvas.addEventListener('mouseup', (e) => {
+    if (e.button === 0) { // 左クリック
+        mouse.isClicked = false;
+    }
+});
+
+// ウィンドウ全体でのマウスアップも監視（キャンバス外でマウスを離した場合）
+document.addEventListener('mouseup', () => {
+    mouse.isClicked = false;
 });
 
 function resetGame() {
