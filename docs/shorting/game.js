@@ -107,9 +107,7 @@ class Player {
         this.y = canvas.height - 100;
         this.width = 60;  // より適切なサイズに調整
         this.height = 60;  // より適切なサイズに調整
-        this.speed = 5;
-        this.slowSpeed = 2;
-        this.isSlow = false;
+        this.speed = 2;
         this.bullets = [];
         this.shootCooldown = 0;
         this.invulnerable = 0;
@@ -134,7 +132,7 @@ class Player {
             return;  // エントリー中は他の操作を受け付けない
         }
 
-        const speed = this.isSlow ? this.slowSpeed : this.speed;
+        const speed = this.speed;
 
         if (keys.ArrowLeft && this.x > this.width/2) {
             this.x -= speed;
@@ -223,13 +221,12 @@ class Player {
             ctx.fill();
         }
 
-        if (this.isSlow) {
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.hitboxRadius, 0, Math.PI * 2);
-            ctx.stroke();
-        }
+        // プレイヤーの当たり判定を常に表示
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.hitboxRadius, 0, Math.PI * 2);
+        ctx.stroke();
 
         ctx.restore();
 
@@ -703,7 +700,6 @@ const keys = {
     z: false,
     x: false,
     xPressed: false,
-    Shift: false
 };
 
 document.addEventListener('keydown', (e) => {
@@ -721,9 +717,6 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
     }
 
-    if (e.key === 'Shift') {
-        player.isSlow = true;
-    }
 
     if (e.key === 'Enter' && game.gameOver) {
         resetGame();
@@ -736,9 +729,6 @@ document.addEventListener('keyup', (e) => {
         e.preventDefault();
     }
 
-    if (e.key === 'Shift') {
-        player.isSlow = false;
-    }
 
     if (e.key === 'x') {
         keys.xPressed = false;
