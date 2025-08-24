@@ -139,21 +139,21 @@
 
         .character-portrait {
             position: absolute;
-            width: 20vw;
-            height: 30vh;
-            max-width: 120px;
-            max-height: 180px;
-            top: 50%;
+            width: 45vw;
+            height: 55vh;
+            max-width: 280px;
+            max-height: 380px;
+            top: 35%;
             transform: translateY(-50%);
             transition: opacity 0.3s;
         }
 
         #leftCharacter {
-            left: 2vw;
+            left: -10vw;
         }
 
         #rightCharacter {
-            right: 2vw;
+            right: -10vw;
         }
 
         .character-portrait.inactive {
@@ -175,23 +175,24 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 4vw;
-            max-font-size: 24px;
+            font-size: 8vw;
+            max-font-size: 40px;
             font-weight: bold;
         }
 
         #dialogueBox {
             position: absolute;
-            bottom: 10vh;
+            bottom: 35vh;
             left: 50%;
             transform: translateX(-50%);
-            width: 90vw;
-            max-width: 500px;
+            width: 75vw;
+            max-width: 400px;
             background: linear-gradient(to bottom, rgba(0,0,40,0.95), rgba(0,0,60,0.95));
             border: 2px solid #4a5568;
             border-radius: 10px;
-            padding: 4vw;
+            padding: 3vw;
             box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            z-index: 25;
         }
 
         #speakerName {
