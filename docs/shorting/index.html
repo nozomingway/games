@@ -2,46 +2,97 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>永夜幻映 ～兎封伝～</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
             font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            touch-action: none;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh; /* iPhone対応 */
+            position: fixed;
         }
         #gameContainer {
             position: relative;
+            background: #000;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh; /* iPhone対応 */
             display: flex;
-            background: #111;
-            border: 2px solid #444;
-            box-shadow: 0 0 20px rgba(100, 100, 255, 0.5);
+            justify-content: center;
+            align-items: center;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
+        
         canvas {
-            border-right: 2px solid #444;
+            display: block;
+            background: #111;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(100, 100, 255, 0.3);
         }
-        #info {
-            width: 200px;
-            padding: 20px;
-            color: white;
-            font-size: 16px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            display: none;
-            background: linear-gradient(to bottom, #1a1a2e, #0f0f1e);
-            position: relative;
-        }
-        #controls {
+        
+        #gameUI {
             position: absolute;
-            bottom: -50px;
+            bottom: 0;
+            left: 0;
             width: 100%;
-            text-align: center;
-            color: #888;
-            font-size: 14px;
+            height: 12vh;
+            display: none;
+            background: rgba(0, 0, 0, 0.7);
+            border-top: 2px solid #4a5568;
+            padding: 1vh 2vw;
+            box-sizing: border-box;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #scoreDisplay {
+            flex: 1;
+            display: flex;
+            gap: 3vw;
+            align-items: center;
+            color: white;
+            font-size: min(3.5vw, 16px);
+            font-weight: bold;
+        }
+
+        #scoreDisplay span {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        #bombButton {
+            width: 20vw;
+            max-width: 100px;
+            height: 8vh;
+            max-height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 2px solid #fff;
+            border-radius: 10px;
+            color: white;
+            font-size: min(4vw, 18px);
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        #bombButton:active {
+            transform: scale(0.95);
+        }
+
+        #bombButton.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
         }
         #startScreen {
             position: absolute;
@@ -49,12 +100,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: transparent;
+            background: rgba(0, 0, 0, 0.8);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 10;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
         #startScreen h1 {
             color: #fff;
@@ -72,19 +124,21 @@
             to { text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.6); }
         }
         #startButton {
-            padding: 18px 50px;
-            font-size: 20px;
+            padding: 20px 60px;
+            font-size: 24px;
             font-family: 'Arial Black', 'Arial', sans-serif;
             font-weight: bold;
             letter-spacing: 2px;
             background: linear-gradient(135deg, #4a5568 0%, #2d3748 50%, #1a202c 100%);
             color: #ffd700;
-            border: 2px solid #ffd700;
-            border-radius: 8px;
+            border: 3px solid #ffd700;
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.1);
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         #startButton:hover {
             transform: translateY(-3px);
@@ -98,11 +152,12 @@
             box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
         }
         .controls-info {
-            margin-top: 30px;
-            color: rgba(255,255,255,0.8);
+            margin-top: 40px;
+            color: rgba(255,255,255,0.9);
             text-align: center;
-            font-size: 14px;
-            line-height: 1.6;
+            font-size: 16px;
+            line-height: 1.8;
+            padding: 0 20px;
         }
         .hidden {
             display: none !important;
@@ -128,20 +183,21 @@
 
         .character-portrait {
             position: absolute;
-            width: 220px;
-            height: 300px;
-            top: 50%;
+            width: 45vw;
+            height: 55vh;
+            max-width: 280px;
+            max-height: 380px;
+            top: 35%;
             transform: translateY(-50%);
             transition: opacity 0.3s;
         }
 
         #leftCharacter {
-            left: -10px;
+            left: -10vw;
         }
 
         #rightCharacter {
-            right: 10px;
-            left: 300px;
+            right: -10vw;
         }
 
         .character-portrait.inactive {
@@ -163,46 +219,47 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 40px;
+            font-size: min(8vw, 40px);
             font-weight: bold;
         }
 
         #dialogueBox {
             position: absolute;
-            bottom: 100px;
-            left: 250px;
+            bottom: 35vh;
+            left: 50%;
             transform: translateX(-50%);
-            width: 450px;
-            max-width: 450px;
+            width: 75vw;
+            max-width: 400px;
             background: linear-gradient(to bottom, rgba(0,0,40,0.95), rgba(0,0,60,0.95));
             border: 2px solid #4a5568;
             border-radius: 10px;
-            padding: 20px;
+            padding: 3vw;
             box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            z-index: 25;
         }
 
         #speakerName {
             color: #ffd700;
-            font-size: 18px;
+            font-size: min(4.5vw, 18px);
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 2vw;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
 
         #dialogueText {
             color: white;
-            font-size: 16px;
+            font-size: min(4vw, 16px);
             line-height: 1.6;
-            min-height: 60px;
+            min-height: 15vw;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
         }
 
         #dialoguePrompt {
             position: absolute;
-            bottom: 10px;
-            right: 10px;
+            bottom: 2vw;
+            right: 2vw;
             color: #ffd700;
-            font-size: 12px;
+            font-size: min(3vw, 12px);
             animation: blink 1s infinite;
         }
 
@@ -221,10 +278,8 @@
             <button id="startButton">START GAME</button>
             <div class="controls-info">
                 <p>操作方法</p>
-                矢印キー: 移動<br>
-                Z: ショット<br>
-                X: ボム<br>
-                Shift: 低速移動
+                タッチ/クリック: 移動<br>
+                自動連射: 常時
             </div>
         </div>
 
@@ -248,36 +303,18 @@
             <div id="dialogueBox">
                 <div id="speakerName">???</div>
                 <div id="dialogueText"></div>
-                <div id="dialoguePrompt">▼ Zキーで進む</div>
+                <div id="dialoguePrompt">▼ タップ/クリックで進む</div>
             </div>
         </div>
 
-        <div id="info">
-            <div style="margin-bottom: 30px;">
-                <div style="color: #ffd700; font-size: 14px; margin-bottom: 5px;">SCORE</div>
-                <div style="font-size: 24px; font-weight: bold;"><span id="score">0</span></div>
+        <!-- ゲームUI（下部） -->
+        <div id="gameUI">
+            <div id="scoreDisplay">
+                <span id="score">スコア: 0</span>
+                <span id="lives">残機: 3</span>
+                <span id="bombs">ボム: 3</span>
             </div>
-
-            <div style="margin-bottom: 30px;">
-                <div style="color: #ffd700; font-size: 14px; margin-bottom: 5px;">PLAYER</div>
-                <div style="display: flex; gap: 5px;">
-                    <span id="livesDisplay"></span>
-                </div>
-            </div>
-
-            <div style="margin-bottom: 30px;">
-                <div style="color: #ffd700; font-size: 14px; margin-bottom: 5px;">SPELL CARD</div>
-                <div style="display: flex; gap: 5px;">
-                    <span id="bombsDisplay"></span>
-                </div>
-            </div>
-
-            <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); text-align: center;">
-                <img src="logo2.png" id="sidebarLogo" style="max-width: 160px; opacity: 0.8;" onerror="this.style.display='none';">
-            </div>
-        </div>
-        <div id="controls">
-            矢印キー: 移動 | Z: ショット | X: スペルカード | Shift: 低速移動
+            <button id="bombButton">ボム</button>
         </div>
     </div>
     <script src="game.js"></script>
