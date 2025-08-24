@@ -39,16 +39,60 @@
             box-shadow: 0 0 20px rgba(100, 100, 255, 0.3);
         }
         
-        #controls {
-            display: none;
-        }
-        #controls {
+        #gameUI {
             position: absolute;
-            bottom: -50px;
+            bottom: 0;
+            left: 0;
             width: 100%;
-            text-align: center;
-            color: #888;
-            font-size: 14px;
+            height: 12vh;
+            display: none;
+            background: rgba(0, 0, 0, 0.7);
+            border-top: 2px solid #4a5568;
+            padding: 1vh 2vw;
+            box-sizing: border-box;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #scoreDisplay {
+            flex: 1;
+            display: flex;
+            gap: 3vw;
+            align-items: center;
+            color: white;
+            font-size: min(3.5vw, 16px);
+            font-weight: bold;
+        }
+
+        #scoreDisplay span {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        #bombButton {
+            width: 20vw;
+            max-width: 100px;
+            height: 8vh;
+            max-height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 2px solid #fff;
+            border-radius: 10px;
+            color: white;
+            font-size: min(4vw, 18px);
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        #bombButton:active {
+            transform: scale(0.95);
+        }
+
+        #bombButton.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
         }
         #startScreen {
             position: absolute;
@@ -235,8 +279,7 @@
             <div class="controls-info">
                 <p>操作方法</p>
                 タッチ/クリック: 移動<br>
-                自動連射: 常時<br>
-                X: ボム
+                自動連射: 常時
             </div>
         </div>
 
@@ -264,8 +307,14 @@
             </div>
         </div>
 
-        <div id="controls">
-            タッチ/クリック: 移動 | 自動連射: 常時 | X: スペルカード
+        <!-- ゲームUI（下部） -->
+        <div id="gameUI">
+            <div id="scoreDisplay">
+                <span id="score">スコア: 0</span>
+                <span id="lives">残機: 3</span>
+                <span id="bombs">ボム: 3</span>
+            </div>
+            <button id="bombButton">ボム</button>
         </div>
     </div>
     <script src="game.js"></script>

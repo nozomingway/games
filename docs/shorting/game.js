@@ -276,6 +276,9 @@ class Player {
                 60
             ));
         }
+        
+        // UI更新
+        updateGameUI();
     }
 
     draw() {
@@ -1168,30 +1171,8 @@ function drawGame() {
         enemyBullets.forEach(bullet => bullet.draw());
         player.draw();
 
-        // ゲーム画面内にスコア、残機、ボム数を表示
-        ctx.save();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'left';
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 3;
-
-        // スコア表示（左上）
-        const scoreText = `スコア: ${game.score}`;
-        ctx.strokeText(scoreText, 10, 25);
-        ctx.fillText(scoreText, 10, 25);
-
-        // 残機表示（左上、2段目）
-        const livesText = `残機: ${game.lives}`;
-        ctx.strokeText(livesText, 10, 50);
-        ctx.fillText(livesText, 10, 50);
-
-        // ボム数表示（左上、3段目）
-        const bombsText = `ボム: ${game.bombs}`;
-        ctx.strokeText(bombsText, 10, 75);
-        ctx.fillText(bombsText, 10, 75);
-
-        ctx.restore();
+        // UI要素を更新
+        updateGameUI();
     }
 
     if (game.gameOver) {
@@ -1225,6 +1206,12 @@ function initStartButton() {
             // スタート画面を非表示
             document.getElementById('startScreen').classList.add('hidden');
 
+            // ゲームUIを表示
+            const gameUI = document.getElementById('gameUI');
+            if (gameUI) {
+                gameUI.style.display = 'flex';
+            }
+
             // ゲーム開始
             game.started = true;
 
@@ -1235,6 +1222,56 @@ function initStartButton() {
         });
     } else {
         console.error('startButton element not found');
+    }
+    
+    // ボムボタンの初期化
+    const bombButton = document.getElementById('bombButton');
+    if (bombButton) {
+        bombButton.addEventListener('click', () => {
+            useBomb();
+        });
+        
+        bombButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            useBomb();
+        });
+    }
+}
+
+// UI要素の更新
+function updateGameUI() {
+    const scoreElem = document.getElementById('score');
+    const livesElem = document.getElementById('lives');
+    const bombsElem = document.getElementById('bombs');
+    const bombButton = document.getElementById('bombButton');
+    
+    if (scoreElem) scoreElem.textContent = `スコア: ${game.score}`;
+    if (livesElem) livesElem.textContent = `残機: ${game.lives}`;
+    if (bombsElem) bombsElem.textContent = `ボム: ${game.bombs}`;
+    
+    // ボムボタンの状態更新
+    if (bombButton) {
+        if (game.bombs <= 0) {
+            bombButton.classList.add('disabled');
+            bombButton.disabled = true;
+        } else {
+            bombButton.classList.remove('disabled');
+            bombButton.disabled = false;
+        }
+    }
+}
+
+// ボム使用関数
+function useBomb() {
+    if (game.bombs > 0 && !keys.xPressed && player) {
+        keys.xPressed = true;
+        // プレイヤーのuseBomb関数を直接呼び出す
+        player.useBomb();
+        
+        // 連打防止のためのタイマー
+        setTimeout(() => {
+            keys.xPressed = false;
+        }, 500);
     }
 }
 
