@@ -838,6 +838,29 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// 会話シーンにクリック・タップイベントを追加
+document.addEventListener('DOMContentLoaded', () => {
+    const dialogueScene = document.getElementById('dialogueScene');
+    
+    // クリック処理
+    dialogueScene.addEventListener('click', (e) => {
+        if (game.inDialogue) {
+            dialogueSystem.next();
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    });
+    
+    // タッチ処理
+    dialogueScene.addEventListener('touchstart', (e) => {
+        if (game.inDialogue) {
+            dialogueSystem.next();
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    });
+});
+
 document.addEventListener('keyup', (e) => {
     if (e.key in keys) {
         keys[e.key] = false;
@@ -887,6 +910,13 @@ document.addEventListener('mouseup', () => {
 // タッチ操作のサポート
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
+    
+    // 会話中は処理しない（会話シーンが処理する）
+    if (game.inDialogue) {
+        return;
+    }
+    
+    // ゲーム中の移動処理
     const rect = canvas.getBoundingClientRect();
     const touch = e.touches[0];
     mouse.x = touch.clientX - rect.left;
@@ -1018,8 +1048,10 @@ function checkCollisions() {
 
 function updateGame() {
     // 背景のスクロールは常に実行（スタート画面でも動かす）
-    bgScrollY += 1;
-    if (bgScrollY > canvas.height) {
+    // スクロール速度を画面サイズに応じて調整
+    const scrollSpeed = Math.max(0.5, canvas.height * 0.0015);
+    bgScrollY += scrollSpeed;
+    if (bgScrollY >= canvas.height) {
         bgScrollY = 0;
     }
 
@@ -1075,22 +1107,32 @@ function drawGame() {
     if (bgImageLoaded && backgroundImage.complete) {
         const imgHeight = backgroundImage.height;
         const imgWidth = backgroundImage.width;
-        const scale = canvas.width / imgWidth;
+        
+        // 画面を完全にカバーするようにスケールを計算
+        const scaleX = canvas.width / imgWidth;
+        const scaleY = canvas.height / imgHeight;
+        const scale = Math.max(scaleX, scaleY); // 大きい方のスケールを使用して隙間を防ぐ
+        
+        const scaledWidth = imgWidth * scale;
         const scaledHeight = imgHeight * scale;
-
+        
+        // 中央揃えのためのオフセット
+        const offsetX = (canvas.width - scaledWidth) / 2;
+        
+        // 背景を2枚使ってループさせる
         ctx.drawImage(
             backgroundImage,
-            0,
+            offsetX,
             bgScrollY - scaledHeight,
-            canvas.width,
+            scaledWidth,
             scaledHeight
         );
 
         ctx.drawImage(
             backgroundImage,
-            0,
+            offsetX,
             bgScrollY,
-            canvas.width,
+            scaledWidth,
             scaledHeight
         );
     } else {
