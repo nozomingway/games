@@ -1,39 +1,60 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// 画面サイズの設定（スマートフォン対応）
+// iPhone優先のキャンバスサイズ設定
 function resizeCanvas() {
-    const isMobile = window.innerWidth <= 600;
+    // iPhone 14 Pro Max基準のアスペクト比（9:19.5の近似）
+    const aspectRatio = 9 / 19.5;
     
-    if (isMobile) {
-        // モバイルでは画面全体を使用
-        const aspectRatio = 500 / 750;
-        const windowRatio = window.innerWidth / window.innerHeight;
+    // Safe Areaを考慮した実際の利用可能領域
+    const availableWidth = window.innerWidth;
+    const availableHeight = window.innerHeight;
+    
+    // iPhone最適化サイズを計算
+    let gameWidth, gameHeight;
+    
+    if (availableWidth / availableHeight < aspectRatio) {
+        // 縦長画面（通常のiPhone縦向き）
+        gameWidth = Math.floor(availableWidth * 0.95); // 画面幅の95%
+        gameHeight = Math.floor(gameWidth / aspectRatio);
         
-        if (windowRatio < aspectRatio) {
-            // 横幅に合わせる
-            canvas.width = Math.floor(window.innerWidth);
-            canvas.height = Math.floor(window.innerWidth / aspectRatio);
-        } else {
-            // 縦幅に合わせる
-            canvas.height = Math.floor(window.innerHeight);
-            canvas.width = Math.floor(window.innerHeight * aspectRatio);
+        // 高さが画面を超える場合は調整
+        if (gameHeight > availableHeight * 0.95) {
+            gameHeight = Math.floor(availableHeight * 0.95);
+            gameWidth = Math.floor(gameHeight * aspectRatio);
         }
     } else {
-        // デスクトップでは固定サイズ
-        canvas.width = 500;
-        canvas.height = 750;
+        // 横長画面（iPad等）
+        gameHeight = Math.floor(availableHeight * 0.9);
+        gameWidth = Math.floor(gameHeight * aspectRatio);
+        
+        // iPhone風の縦長比率を維持
+        if (gameWidth < 350) {
+            gameWidth = 350;
+            gameHeight = Math.floor(gameWidth / aspectRatio);
+        }
     }
+    
+    // 最小・最大サイズの制限
+    gameWidth = Math.max(300, Math.min(500, gameWidth));
+    gameHeight = Math.max(600, Math.min(1000, gameHeight));
+    
+    canvas.width = gameWidth;
+    canvas.height = gameHeight;
+    
+    // キャンバスのCSSサイズも設定
+    canvas.style.width = gameWidth + 'px';
+    canvas.style.height = gameHeight + 'px';
     
     // マウス初期位置を調整（mouseオブジェクトが存在する場合のみ）
     if (typeof mouse !== 'undefined') {
         mouse.x = canvas.width / 2;
-        mouse.y = canvas.height - 100;
+        mouse.y = canvas.height - 80; // iPhone用に調整
     }
 }
 
-// 初期キャンバスサイズを設定（mouseオブジェクト作成前）
-canvas.width = 500;
+// 初期キャンバスサイズを設定（iPhone基準）
+canvas.width = 350;
 canvas.height = 750;
 
 // 画像のスムージングを有効化（アンチエイリアシング）
