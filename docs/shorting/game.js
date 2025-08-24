@@ -132,19 +132,40 @@ class Player {
             return;  // エントリー中は他の操作を受け付けない
         }
 
-        const speed = this.speed;
+        // マウス操作が有効な場合はマウス位置に追従、そうでなければキーボード操作
+        if (mouse.isActive) {
+            // マウス位置に向かって移動（スムーズな移動のため速度制限）
+            const dx = mouse.x - this.x;
+            const dy = mouse.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 1) { // 1ピクセル以内なら移動しない
+                const moveX = (dx / distance) * Math.min(this.speed, distance);
+                const moveY = (dy / distance) * Math.min(this.speed, distance);
+                
+                // 画面境界チェック
+                const newX = Math.max(this.width/2, Math.min(canvas.width - this.width/2, this.x + moveX));
+                const newY = Math.max(this.height/2, Math.min(canvas.height - this.height/2, this.y + moveY));
+                
+                this.x = newX;
+                this.y = newY;
+            }
+        } else {
+            // キーボード操作（フォールバック）
+            const speed = this.speed;
 
-        if (keys.ArrowLeft && this.x > this.width/2) {
-            this.x -= speed;
-        }
-        if (keys.ArrowRight && this.x < canvas.width - this.width/2) {
-            this.x += speed;
-        }
-        if (keys.ArrowUp && this.y > this.height/2) {
-            this.y -= speed;
-        }
-        if (keys.ArrowDown && this.y < canvas.height - this.height/2) {
-            this.y += speed;
+            if (keys.ArrowLeft && this.x > this.width/2) {
+                this.x -= speed;
+            }
+            if (keys.ArrowRight && this.x < canvas.width - this.width/2) {
+                this.x += speed;
+            }
+            if (keys.ArrowUp && this.y > this.height/2) {
+                this.y -= speed;
+            }
+            if (keys.ArrowDown && this.y < canvas.height - this.height/2) {
+                this.y += speed;
+            }
         }
 
         if (this.shootCooldown > 0) {
@@ -702,6 +723,13 @@ const keys = {
     xPressed: false,
 };
 
+// マウス位置を追跡
+const mouse = {
+    x: canvas.width / 2,
+    y: canvas.height - 100,
+    isActive: false
+};
+
 document.addEventListener('keydown', (e) => {
     // 会話中の処理
     if (game.inDialogue) {
@@ -733,6 +761,22 @@ document.addEventListener('keyup', (e) => {
     if (e.key === 'x') {
         keys.xPressed = false;
     }
+});
+
+// マウスイベントリスナーを追加
+canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+    mouse.isActive = true;
+});
+
+canvas.addEventListener('mouseenter', (e) => {
+    mouse.isActive = true;
+});
+
+canvas.addEventListener('mouseleave', (e) => {
+    mouse.isActive = false;
 });
 
 function resetGame() {
