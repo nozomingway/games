@@ -1,7 +1,38 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// 画面サイズを1.25倍に拡大
+// 画面サイズの設定（スマートフォン対応）
+function resizeCanvas() {
+    const isMobile = window.innerWidth <= 600;
+    
+    if (isMobile) {
+        // モバイルでは画面全体を使用
+        const aspectRatio = 500 / 750;
+        const windowRatio = window.innerWidth / window.innerHeight;
+        
+        if (windowRatio < aspectRatio) {
+            // 横幅に合わせる
+            canvas.width = Math.floor(window.innerWidth);
+            canvas.height = Math.floor(window.innerWidth / aspectRatio);
+        } else {
+            // 縦幅に合わせる
+            canvas.height = Math.floor(window.innerHeight);
+            canvas.width = Math.floor(window.innerHeight * aspectRatio);
+        }
+    } else {
+        // デスクトップでは固定サイズ
+        canvas.width = 500;
+        canvas.height = 750;
+    }
+    
+    // マウス初期位置を調整（mouseオブジェクトが存在する場合のみ）
+    if (typeof mouse !== 'undefined') {
+        mouse.x = canvas.width / 2;
+        mouse.y = canvas.height - 100;
+    }
+}
+
+// 初期キャンバスサイズを設定（mouseオブジェクト作成前）
 canvas.width = 500;
 canvas.height = 750;
 
@@ -731,6 +762,17 @@ const mouse = {
     isClicked: false
 };
 
+// マウス初期位置を現在のキャンバスサイズに合わせて再設定
+mouse.x = canvas.width / 2;
+mouse.y = canvas.height - 100;
+
+// mouseオブジェクト定義後にresizeCanvas()を呼び出し
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => {
+    setTimeout(resizeCanvas, 100);
+});
+
 document.addEventListener('keydown', (e) => {
     // 会話中の処理
     if (game.inDialogue) {
@@ -796,6 +838,37 @@ canvas.addEventListener('mouseup', (e) => {
 // ウィンドウ全体でのマウスアップも監視（キャンバス外でマウスを離した場合）
 document.addEventListener('mouseup', () => {
     mouse.isClicked = false;
+});
+
+// タッチ操作のサポート
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    mouse.x = touch.clientX - rect.left;
+    mouse.y = touch.clientY - rect.top;
+    mouse.isActive = true;
+    mouse.isClicked = true;
+});
+
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    mouse.x = touch.clientX - rect.left;
+    mouse.y = touch.clientY - rect.top;
+    mouse.isActive = true;
+});
+
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    mouse.isClicked = false;
+});
+
+canvas.addEventListener('touchcancel', (e) => {
+    e.preventDefault();
+    mouse.isClicked = false;
+    mouse.isActive = false;
 });
 
 function resetGame() {
@@ -1041,19 +1114,33 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// スタートボタンのイベントリスナー
-document.getElementById('startButton').addEventListener('click', function() {
-    // スタート画面を非表示
-    document.getElementById('startScreen').classList.add('hidden');
+// スタートボタンのイベントリスナー（DOMContentLoaded後に実行）
+function initStartButton() {
+    const startButton = document.getElementById('startButton');
+    if (startButton) {
+        startButton.addEventListener('click', function() {
+            // スタート画面を非表示
+            document.getElementById('startScreen').classList.add('hidden');
 
-    // ゲーム開始
-    game.started = true;
+            // ゲーム開始
+            game.started = true;
 
-    // プレイヤーのエントリーアニメーションを開始
-    player.startEntry();
+            // プレイヤーのエントリーアニメーションを開始
+            player.startEntry();
 
-    playBGM();
-});
+            playBGM();
+        });
+    } else {
+        console.error('startButton element not found');
+    }
+}
+
+// DOMが読み込まれてからイベントリスナーを設定
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initStartButton);
+} else {
+    initStartButton();
+}
 
 // 会話システム
 class DialogueSystem {
@@ -1179,4 +1266,13 @@ class DialogueSystem {
 
 const dialogueSystem = new DialogueSystem();
 
-gameLoop();
+// ゲームループもDOMContentLoaded後に開始
+function startGameLoop() {
+    gameLoop();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startGameLoop);
+} else {
+    startGameLoop();
+}

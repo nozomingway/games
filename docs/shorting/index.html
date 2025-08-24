@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>永夜幻映 ～兎封伝～</title>
     <style>
         body {
@@ -14,12 +14,45 @@
             align-items: center;
             min-height: 100vh;
             font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            touch-action: none;
         }
         #gameContainer {
             position: relative;
             background: #111;
             border: 2px solid #444;
             box-shadow: 0 0 20px rgba(100, 100, 255, 0.5);
+            width: 100vw;
+            height: 100vh;
+            max-width: 500px;
+            max-height: 750px;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        
+        @media (max-width: 600px) {
+            #gameContainer {
+                width: 100vw;
+                height: 100vh;
+                border: none;
+                box-shadow: none;
+                max-width: none;
+                max-height: none;
+            }
+            
+            canvas {
+                width: 100vw;
+                height: 100vh;
+            }
+            
+            #controls {
+                display: none;
+            }
         }
         #controls {
             position: absolute;
@@ -207,7 +240,7 @@
             <button id="startButton">START GAME</button>
             <div class="controls-info">
                 <p>操作方法</p>
-                左クリック: 移動<br>
+                タッチ/クリック: 移動<br>
                 自動連射: 常時<br>
                 X: ボム
             </div>
@@ -238,7 +271,7 @@
         </div>
 
         <div id="controls">
-            左クリック: 移動 | 自動連射: 常時 | X: スペルカード
+            タッチ/クリック: 移動 | 自動連射: 常時 | X: スペルカード
         </div>
     </div>
     <script src="game.js"></script>
