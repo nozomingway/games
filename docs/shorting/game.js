@@ -894,22 +894,6 @@ function updateGame() {
         spawnEnemy();
         checkCollisions();
 
-        // スコアと残機、スペルカードの表示を更新
-        document.getElementById('score').textContent = game.score;
-
-        // 残機を桜アイコンで表示
-        const livesDisplay = document.getElementById('livesDisplay');
-        livesDisplay.innerHTML = '';
-        for (let i = 0; i < game.lives; i++) {
-            livesDisplay.innerHTML += '<span style="color: #ff99cc; font-size: 20px;">🌸</span>';
-        }
-
-        // スペルカードを星アイコンで表示
-        const bombsDisplay = document.getElementById('bombsDisplay');
-        bombsDisplay.innerHTML = '';
-        for (let i = 0; i < game.bombs; i++) {
-            bombsDisplay.innerHTML += '<span style="color: #ffd700; font-size: 20px;">⭐</span>';
-        }
     }
 }
 
@@ -954,6 +938,31 @@ function drawGame() {
         enemies.forEach(enemy => enemy.draw());
         enemyBullets.forEach(bullet => bullet.draw());
         player.draw();
+
+        // ゲーム画面内にスコア、残機、ボム数を表示
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'left';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 3;
+
+        // スコア表示（左上）
+        const scoreText = `スコア: ${game.score}`;
+        ctx.strokeText(scoreText, 10, 25);
+        ctx.fillText(scoreText, 10, 25);
+
+        // 残機表示（左上、2段目）
+        const livesText = `残機: ${game.lives}`;
+        ctx.strokeText(livesText, 10, 50);
+        ctx.fillText(livesText, 10, 50);
+
+        // ボム数表示（左上、3段目）
+        const bombsText = `ボム: ${game.bombs}`;
+        ctx.strokeText(bombsText, 10, 75);
+        ctx.fillText(bombsText, 10, 75);
+
+        ctx.restore();
     }
 
     if (game.gameOver) {
@@ -983,8 +992,6 @@ function gameLoop() {
 document.getElementById('startButton').addEventListener('click', function() {
     // スタート画面を非表示
     document.getElementById('startScreen').classList.add('hidden');
-    // ゲーム情報を表示
-    document.getElementById('info').style.display = 'block';
 
     // ゲーム開始
     game.started = true;
