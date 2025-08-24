@@ -838,11 +838,11 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// 会話シーンにクリック・タップイベントを追加
+// 会話シーンとゲームオーバー画面のクリック・タップイベントを追加
 document.addEventListener('DOMContentLoaded', () => {
     const dialogueScene = document.getElementById('dialogueScene');
     
-    // クリック処理
+    // 会話シーンのクリック処理
     dialogueScene.addEventListener('click', (e) => {
         if (game.inDialogue) {
             dialogueSystem.next();
@@ -851,12 +851,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // タッチ処理
+    // 会話シーンのタッチ処理
     dialogueScene.addEventListener('touchstart', (e) => {
         if (game.inDialogue) {
             dialogueSystem.next();
             e.preventDefault();
             e.stopPropagation();
+        }
+    });
+    
+    // ゲームオーバー時のクリック処理
+    canvas.addEventListener('click', (e) => {
+        if (game.gameOver) {
+            resetGame();
+            e.preventDefault();
         }
     });
 });
@@ -913,6 +921,12 @@ canvas.addEventListener('touchstart', (e) => {
     
     // 会話中は処理しない（会話シーンが処理する）
     if (game.inDialogue) {
+        return;
+    }
+    
+    // ゲームオーバー時はリスタート
+    if (game.gameOver) {
+        resetGame();
         return;
     }
     
@@ -1193,7 +1207,7 @@ function drawGame() {
         ctx.fillText(`スコア: ${game.score}`, canvas.width/2, canvas.height/2 + 10);
 
         ctx.font = '18px Arial';
-        ctx.fillText('Enterキーでリスタート', canvas.width/2, canvas.height/2 + 50);
+        ctx.fillText('タップ/クリックでリスタート', canvas.width/2, canvas.height/2 + 50);
     }
 }
 
